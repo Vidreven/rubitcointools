@@ -1,12 +1,12 @@
 require_relative 'specials'
-require_relative 'main'
+require_relative 'ecc'
 require_relative 'hashes'
 
 class Keys
 
 	def initialize
 		@sp = Specials.new
-		@m = Main.new
+		@e = ECC.new
 		@h = Hashes.new
 	end
 
@@ -72,9 +72,9 @@ class Keys
 			return [@sp.decode(pub[1..32], 256), @sp.decode(pub[33..65], 256)]
 		elsif format == 'bin_compressed'
 			x = @sp.decode(pub[1..32], 256)
-			beta = (x*x*x + Main::A*x + Main::B)#.to_i
-			beta = @m.square_and_multiply(beta, Main::P)
-			y = ((beta + pub[0].to_i) % 2) ? (Main::P - beta) : beta
+			beta = (x*x*x + ECC::A*x + ECC::B)
+			beta = @e.square_and_multiply(beta, ECC::P)
+			y = ((beta + pub[0].to_i) % 2) ? (ECC::P - beta) : beta
 			return [x, y]
 		elsif format == 'hex'
 			return [@sp.decode(pub[2..65], 16), @sp.decode(pub[66..130], 16)]
@@ -155,13 +155,13 @@ class Keys
 	def add_pubkeys(p1, p2)
 		f1, f2 = get_pubkey_format(p1), get_pubkey_format(p2)
 
-		return encode_pubkey(@m.fast_add(decode_pubkey(p1, f1), decode_pubkey(p2, f2)), f1)
+		return encode_pubkey(@e.fast_add(decode_pubkey(p1, f1), decode_pubkey(p2, f2)), f1)
 	end
 
 	def add_privkeys(p1, p2)
 		f1, f2 = get_privkey_format(p1), get_privkey_format(p2)
 
-		return encode_privkey((decode_privkey(p1, f1) + decode_privkey(p2, f2)) % Main::N, f1)
+		return encode_privkey((decode_privkey(p1, f1) + decode_privkey(p2, f2)) % ECC::N, f1)
 	end
 
 	def multiply(pubkey, privkey)
@@ -169,13 +169,13 @@ class Keys
 		pubkey, privkey = decode_pubkey(pubkey, f1), decode_privkey(privkey, f2)
 
 		# http://safecurves.cr.yp.to/twist.html
-		raise "Point not on curve" if @m.isinf(pubkey) || ((pubkey[0]**3+Main::B-pubkey[1]*pubkey[1]) % Main::P != 0)
+		raise "Point not on curve" if @e.isinf(pubkey) || ((pubkey[0]**3+ECC::B-pubkey[1]*pubkey[1]) % ECC::P != 0)
 		
-		return encode_pubkey(@m.fast_multiply(pubkey, privkey), f1)
+		return encode_pubkey(@e.fast_multiply(pubkey, privkey), f1)
 	end
 
 	def divide(pubkey, privkey)
-		factor = @m.inv(decode_privkey(privkey), Main::N)
+		factor = @e.inv(decode_privkey(privkey), ECC::N)
 		return multiply(pubkey, factor)
 	end
 
@@ -208,12 +208,12 @@ class Keys
 
 		privkey = decode_privkey(privkey, f)
 
-		raise "Invalid privkey" if privkey > Main::N
+		raise "Invalid privkey" if privkey > ECC::N
 
 		if ['bin', 'bin_compressed', 'hex', 'hex_compressed', 'decimal'].include? f
-			return encode_pubkey(@m.fast_multiply(Main::G, privkey), f)
+			return encode_pubkey(@e.fast_multiply(ECC::G, privkey), f)
 		else
-		 	return encode_pubkey(@m.fast_multiply(Main::G, privkey), f.gsub('wif', 'hex'))
+		 	return encode_pubkey(@e.fast_multiply(ECC::G, privkey), f.gsub('wif', 'hex'))
 		end
 	end
 
@@ -236,13 +236,13 @@ class Keys
 	def neg_pubkey(pubkey)
 		f = get_pubkey_format(pubkey)
 		pubkey = decode_pubkey(pubkey, f)
-		return encode_pubkey([pubkey[0], (Main::P - pubkey[1]) % Main::P], f)
+		return encode_pubkey([pubkey[0], (ECC::P - pubkey[1]) % ECC::P], f)
 	end
 
 	def neg_privkey(privkey)
 		f = get_privkey_format(privkey)
 		privkey = decode_privkey(privkey, f)
-		return encode_privkey((Main::N - privkey) % Main::N, f)
+		return encode_privkey((ECC::N - privkey) % ECC::N, f)
 	end
 
 	def subtract_pubkeys(p1, p2)

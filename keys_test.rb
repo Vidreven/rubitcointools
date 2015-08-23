@@ -1,5 +1,5 @@
 require_relative 'keys'
-require_relative 'main'
+require_relative 'ecc'
 require 'test/unit'
 
 class TestKeys < Test::Unit::TestCase
@@ -20,9 +20,9 @@ class TestKeys < Test::Unit::TestCase
 		assert_equal([1, 2], k.decode_pubkey([1, 2], 'decimal'))
 		assert_equal([1, 2], k.decode_pubkey([1, 2]))
 		assert_equal([0, 0], k.decode_pubkey('4' + (0.chr) * 64))
-		assert_equal([0, Main::P], k.decode_pubkey('2' + (0.chr) * 32))
+		assert_equal([0, ECC::P], k.decode_pubkey('2' + (0.chr) * 32))
 		assert_equal([0, 0], k.decode_pubkey('04' + '0' * 128))
-		assert_equal([1, Main::P], k.decode_pubkey('03' + '0' * 63 + '1'))
+		assert_equal([1, ECC::P], k.decode_pubkey('03' + '0' * 63 + '1'))
 	end
 
 	def test_encode_pubkey
@@ -70,34 +70,34 @@ class TestKeys < Test::Unit::TestCase
 
 	def test_add_pubkeys
 		k = Keys.new
-		m = Main.new
+		e = ECC.new
 		sp = Specials.new
 		x = sp.decode('0479BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F8179', 16)
 		y = sp.decode('8483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8', 16)
-		assert_equal(m.from_jacobian(m.jacobian_double(m.to_jacobian([x, y]))), k.add_pubkeys([x, y], [x, y]))
+		assert_equal(e.from_jacobian(e.jacobian_double(e.to_jacobian([x, y]))), k.add_pubkeys([x, y], [x, y]))
 	end
 
 	def test_add_privkeys
 		k = Keys.new
-		m = Main.new
+		e = ECC.new
 		sp = Specials.new
 		p = sp.decode('E9873D79C6D87DC0FB6A5778633389F4453213303DA61F20BD67FC233AA33262', 16)
-		assert_equal((2*p) % Main::N, k.add_privkeys(p, p))
+		assert_equal((2*p) % ECC::N, k.add_privkeys(p, p))
 	end
 
 	def test_multiply
 		k = Keys.new
-		m = Main.new
+		e = ECC.new
 		x = 'E9873D79C6D87DC0FB6A5778633389F4453213303DA61F20BD67FC233AA33262'
 		y = 'E9873D79C6D87DC0FB6A5778633389F4453213303DA61F20BD67FC233AA3326f'
-		assert_equal(k.multiply(k.multiply(Main::G, y), x), k.multiply(k.multiply(Main::G, x), y))
+		assert_equal(k.multiply(k.multiply(ECC::G, y), x), k.multiply(k.multiply(ECC::G, x), y))
 	end
 
 	def test_divide
 		k = Keys.new
-		m = Main.new
+		e = ECC.new
 		x = 'E9873D79C6D87DC0FB6A5778633389F4453213303DA61F20BD67FC233AA33262'
-		assert_equal(Main::G, k.multiply(k.divide(Main::G, x), x))
+		assert_equal(ECC::G, k.multiply(k.divide(ECC::G, x), x))
 	end
 
 	def test_compress
