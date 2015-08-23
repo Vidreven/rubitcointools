@@ -1,4 +1,5 @@
 require_relative 'ecc'
+require_relative 'specials'
 require 'test/unit'
 
 class TestECC < Test::Unit::TestCase

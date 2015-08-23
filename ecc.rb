@@ -1,7 +1,6 @@
 require_relative 'specials'
 require_relative 'hashes'
 require 'securerandom'
-require 'base64'
 
 class ECC
 	
@@ -112,76 +111,6 @@ class ECC
 
 	def fast_multiply(a, n)
 		 return from_jacobian(jacobian_multiply(to_jacobian(a), n))
-	end
-
-	# ECDSA
-
-	def encode_sig(v, r, s)
-		vb, rb, sb = v.to_s(2), @sp.encode(r, 256), @sp.encode(s, 256)
-		result = Base64.encode64(vb + '0' * (32 - rb.length) + rb[0].chr + '0' * (32 - sb.length) + sb[0].chr)
-
-		return result.to_s
-	end
-
-	def decode_sig(sig)
-		bytez = Base64.decode64(sig)
-		return bytez[0], @sp.decode(bytez[1..32], 256), @sp.decode(bytez[33..-1], 256)
-	end
-
-	def deterministic_generate_k(msghash, priv)
-		v = 0.chr * 32
-		k = 0.chr * 32
-
-		priv = encode_privkey(priv, 'bin')
-		msghash = @sp.encode(@sp.hash_to_int(msghash), 256, 32)
-
-		k = HMAC.digest("SHA256", k, v + 0.chr + priv + msghash)
-		v = HMAC.digest("SHA256", k, v)
-
-		k = HMAC.digest("SHA256", v + 1.chr + priv + msghash)
-		v = HMAC.digest("SHA256", k, v)
-
-		return @sp.decode(HMAC.digest("SHA256", k, v), 256)
-	end
-
-	def ecdsa_raw_sign(msghash, priv)
-		z = @sp.hash_to_int(msghash)
-		k = deterministic_generate_k(msghash, priv)
-		r, y = fast_multiply(G, k)
-		s = inv(k, N) * (z + r * decode_privkey(priv)) % N
-
-		return 27 + (y % 2), r, s
-	end
-
-	def ecdsa_raw_verify(msghash, vrs, pub)
-		v, r, s = vrs
-
-		w = inv(s, N)
-		z = @sp.hash_to_int(msghash)
-
-		u1, u2 = z * w % N, r * w % N
-		x, y = fast_add(fast_multiply(G, u1), fast_multiply(decode_pubkey(pub), u2))
-
-		return r == x
-	end
-
-	def ecdsa_raw_recover(msghash, vrs)
-		v, r, s = vrs
-
-		x = r
-		#beta = ((x*x*x + A*x + B) ** (P+1)/4) % P
-		beta = (x*x*x + A*x + B)#.to_i
-		beta = square_and_multiply(beta, P)
-		y = v % 2 ^ beta % 2 ? beta : (P - beta)
-		z = @sp.hash_to_int(msghash)
-		gz = jacobian_multiply([Gx, Gy, 1], (N - z) % N)
-		xy = jacobian_multiply([x, y, 1], s)
-		qr = jacobian_add(gz, xy)
-		q = jacobian_multiply(qr, inv(r, N))
-		q = from_jacobian(q)
-
-		return q if ecdsa_raw_verify(msghash, vrs, q)
-		return false
 	end
 
 	def square_and_multiply(base, exponent)
