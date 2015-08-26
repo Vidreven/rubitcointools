@@ -16,16 +16,19 @@ class ECDSA
 
 	# DER encoding BIP 66 ?
 	# 0x30 + 1 byte length descriptor + 0x02 + 1 byte R length descriptor + R + 0x02 + 1 byte S length descriptor + S
-	def encode_sig(v, r, s)
-		vb, rb, sb = v.chr, @sp.encode(r, 256).map{|c| c.chr}.join, @sp.encode(s, 256).map{|c| c.chr}.join
-		result = Base64.encode64(vb + 0.chr * (32 - rb.length) + rb + 0.chr * (32 - sb.length) + sb)
+	def encode_sig(v = '30', r, s)
+		raise "r cannot  be negative" if (r[0..1] == '00') && (r[2..3] < '80')
+		raise "s cannot  be negative" if (s[0..1] == '00') && (s[2..3] < '80')
+		total_length = (10 + r.length + s.length).to_s(16)
+		r_length = (r.length).to_s(16)
+		s_length = (s.length).to_s(16)
+		result = v + total_length + "02" + r_length + r + "02" + s_length + s
 
-		return result.to_s
+		return result
 	end
 
 	def decode_sig(sig)
-		bytez = Base64.decode64(sig)
-		return bytez[0], @sp.decode(bytez[1..32], 256), @sp.decode(bytez[33..-1], 256)
+		return sig[0..1], sig[8..71], sig[76..-1]
 	end
 
 	# https://tools.ietf.org/html/rfc6979#section-3.2
@@ -85,3 +88,5 @@ class ECDSA
 		return false
 	end
 end
+
+#p ECDSA.new.encode_sig('316eb3cad8b66fcf1494a6e6f9542c3555addbf337f04b62bf4758483fdc881d', 'bf46d26cef45d998a2cb5d2d0b8342d70973fa7c3c37ae72234696524b2bc812')

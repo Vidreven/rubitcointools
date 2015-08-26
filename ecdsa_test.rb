@@ -8,16 +8,26 @@ class TestECDSA < Test::Unit::TestCase
 
 	def test_encode_sig
 		e = ECDSA.new
-		r = Specials.new.decode('316eb3cad8b66fcf1494a6e6f9542c3555addbf337f04b62bf4758483fdc881d', 16)
-		s = Specials.new.decode('bf46d26cef45d998a2cb5d2d0b8342d70973fa7c3c37ae72234696524b2bc812', 16)
-		assert_equal(90, e.encode_sig(30, r, s).length)
+		r = '316eb3cad8b66fcf1494a6e6f9542c3555addbf337f04b62bf4758483fdc881d'
+		s = 'bf46d26cef45d998a2cb5d2d0b8342d70973fa7c3c37ae72234696524b2bc812'
+		sig = e.encode_sig('30', r, s)
+		assert_equal(false, sig.length > 142)
+		assert_equal(false, sig.length < 18)
+		assert_equal('30', sig[0..1])
+		assert_equal(sig[2..3].to_i(16), sig.length - 2)
+		assert_equal(true, 10 + sig[6..7].to_i(16) < sig.length - 2)
+		assert_equal(true, 10 + sig[6..7].to_i(16) + sig[74..75].to_i(16) == sig.length - 2)
+		assert_not_equal(0, sig[6..7].to_i(16))
+		assert_not_equal(0x80, sig[10..11].to_i(16) & 0x80)
+		assert_not_equal(0, sig[74..75].to_i(16))
+		assert_not_equal(0x80, sig[78..79].to_i(16) & 0x80)
 	end
 
 	def test_decode_sig
 		e = ECDSA.new
-		r = Specials.new.decode('316eb3cad8b66fcf1494a6e6f9542c3555addbf337f04b62bf4758483fdc881d', 16)
-		s = Specials.new.decode('bf46d26cef45d998a2cb5d2d0b8342d70973fa7c3c37ae72234696524b2bc812', 16)
-		assert_equal([30.chr, r, s], e.decode_sig(e.encode_sig(30, r, s)))
+		r = '316eb3cad8b66fcf1494a6e6f9542c3555addbf337f04b62bf4758483fdc881d'
+		s = 'bf46d26cef45d998a2cb5d2d0b8342d70973fa7c3c37ae72234696524b2bc812'
+		assert_equal(['30', r, s], e.decode_sig(e.encode_sig('30', r, s)))
 	end
 
 	def test_deterministic_generate_k
