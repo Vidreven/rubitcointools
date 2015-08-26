@@ -1,61 +1,81 @@
-require_relative 'main'
+require_relative 'specials'
 
-def serialize_header(inp)
-	o = encode(inp['version'], 256, 4).reverse +
-		inp['prevhash'].decode('hex').reverse +
-		inp['merkle_root'].decode('hex').reverse +
-		encode(inp['timestamp'], 256, 4).reverse +
-		encode(inp['bits'], 256, 4).reverse +
-		encode(inp['nonce'], 256, 4).reverse
+class Blocks
 
-	h = bin_dbl_sha256(o).reverse.encode('hex')
-
-	return o.encode('hex')
-end
-
-def deserialize_header(inp)
-	inp = inp.decode('hex')
-
-	return {
-		version: decode(inp[0..3].reverse, 256),
-		prevhash: inp[4..36].reverse.encode('hex'),
-		merkle_root: inp[37..68].reverse.encode('hex'),
-		timestamp: decode(inp[69..72].reverse, 256),
-		bits: decode(inp[73..76].reverse, 256),
-		nonce: decode(inp[77..80].reverse, 256),
-		hash: bin_dbl_sha256(inp).reverse.encode('hex')
-	}
-end
-
-def mk_merkle_proof(header, hashes, index)
-	nodes = hashes.map{|h| h.decode('hex')}
-
-	if (nodes.length % 2) && (nodes.length > 2)
-		nodes << nodes[-1]
+	def initialize
+		@sp = Specials.new
+		@h = Hashes.new
 	end
 
-	layers = [nodes]
+	def serialize_header(inp)
 
-	while  nodes.length > 1
-		newnodes = []
-		(0..(nodes.length-1)).step(2) do |i|
-			newnodes << bin_dbl_sha256(nodes[i] + nodes[i+1])
-		end
+		o = @sp.change_endianness(inp[:version]) +
+			@sp.change_endianness(inp[:prevhash]) +
+			@sp.change_endianness(inp[:merkle_root]) +
+			@sp.change_endianness(inp[:timestamp]) +
+			@sp.change_endianness(inp[:bits]) +
+			@sp.change_endianness(inp[:nonce])
 
-		if (newnodes.length % 2) && (newnodes.length > 2)
-			newnodes << newnodes[-1]
-		end
+		o = @sp.changebase(o, 16, 256).map{|c| c.chr}.join
+		h = @sp.changebase(@h.bin_dbl_sha256(o), 256, 16)
 
-		layers << [nodes]
+		raise "Incorrect hash " + h unless @sp.change_endianness(h) == inp[:hash]
+
+		return o
 	end
 
-	raise "Invalid root" unless nodes[0].reverse.encode('hex') == header['merkle_root']
+	def deserialize_header(inp)
+		inp = @sp.changebase(inp, 256, 16) #inp.decode('hex')
 
-	merkle_siblings = (0..layers.length - 1).each{|i| [layers[i][(index >> i) ^ 1]]}
+		return {
+			version: @sp.change_endianness(inp[0..7]),
+			prevhash: @sp.change_endianness(inp[8..71]),
+			merkle_root: @sp.change_endianness(inp[72..136]),
+			timestamp: @sp.change_endianness(inp[137..145]),
+			bits: @sp.change_endianness(inp[146..154]),
+			nonce: @sp.change_endianness(inp[155..-1]),
+			#hash: bin_dbl_sha256(inp).reverse.encode('hex')
+		}
+	end
 
-	return {
-		hash: hashes[index],
-		siblings: merkle_siblings.each{|s| s.reverse.encode('hex')},
-		header: header
-	}
+	def mk_merkle_proof(header, hashes, index)
+		nodes = hashes.map{|h| h.decode('hex')}
+
+		if (nodes.length % 2) && (nodes.length > 2)
+			nodes << nodes[-1]
+		end
+
+		layers = [nodes]
+
+		while  nodes.length > 1
+			newnodes = []
+			(0..(nodes.length-1)).step(2) do |i|
+				newnodes << bin_dbl_sha256(nodes[i] + nodes[i+1])
+			end
+
+			if (newnodes.length % 2) && (newnodes.length > 2)
+				newnodes << newnodes[-1]
+			end
+
+			layers << [nodes]
+		end
+
+		raise "Invalid root" unless nodes[0].reverse.encode('hex') == header['merkle_root']
+
+		merkle_siblings = (0..layers.length - 1).each{|i| [layers[i][(index >> i) ^ 1]]}
+
+		return {
+			hash: hashes[index],
+			siblings: merkle_siblings.each{|s| s.reverse.encode('hex')},
+			header: header
+		}
+	end
 end
+
+# p Blocks.new.serialize_header({version: 3, prevhash: Specials.new.decode('81cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000'.reverse, 16),
+# 	merkle_root: Specials.new.decode('e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122b'.reverse, 16),
+# 	timestamp: Specials.new.decode('c7f5d74d', 16), bits: Specials.new.decode('f2b9441a', 16), nonce: Specials.new.decode('42a14695', 16),
+# 	hash: Specials.new.decode('00000000000000001e8d6829a8a21adc5d38d0a473b144b6765798e61f98bd1d', 16)})
+
+#p Specials.new.decode('4dd7f5c7', 16)
+#p ['c7f5d74d'].pack('H*').unpack('N*').pack('V*').unpack('H*')
