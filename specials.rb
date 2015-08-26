@@ -129,6 +129,6 @@ class Specials
 	end
 
 	def change_endianness(hex_string)
-		return [hex_string].pack('H*').unpack('N*').pack('V*').unpack('H*')[0]
+		return [hex_string].pack('H*').reverse.unpack('H*')[0]
 	end
 end
