@@ -75,4 +75,10 @@ class TestSpecials < Test::Unit::TestCase
 		assert_equal(1, sp.hash_to_int('0' * 63 + '1'))
 		assert_equal(0, sp.hash_to_int(0.chr * 32))
 	end
+
+	def test_change_endianness
+		sp = Specials.new
+		assert_equal('c7f5d74d', sp.change_endianness('4dd7f5c7'))
+		assert_equal('4dd7f5c7', sp.change_endianness(sp.change_endianness('4dd7f5c7')))
+	end
 end

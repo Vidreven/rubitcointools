@@ -1,5 +1,4 @@
 require_relative 'specials'
-require_relative 'hashes'
 require 'securerandom'
 
 class ECC
@@ -15,7 +14,6 @@ class ECC
 
 	def initialize
 		@sp = Specials.new
-		@h = Hashes.new
 	end
 	
 	def change_curve(p, n, a, b, gx, gy)

@@ -127,4 +127,8 @@ class Specials
 		return decode(x, 16) if [40, 64].include? x.length
 		return decode(x, 256)
 	end
+
+	def change_endianness(hex_string)
+		return [hex_string].pack('H*').unpack('N*').pack('V*').unpack('H*')[0]
+	end
 end
