@@ -39,10 +39,10 @@ class Blocks
 		}
 	end
 
+	# Returns a Merkle path of the transaction to the root?
 	def mk_merkle_proof(header, hashes, index)
 		nodes = hashes.map{|h| @sp.change_endianness(h)}
 		nodes = nodes.map{|h| @sp.changebase(h, 16, 256).map{|c| c.chr}.join}
-		#nodes = nodes.map{|n| n.reverse}
 
 		if (nodes.length % 2 == 1) && (nodes.length > 2)
 			nodes << nodes[-1]
@@ -64,7 +64,7 @@ class Blocks
 			layers << [nodes]
 		end
 
-		#raise "Invalid root" unless @sp.changebase(nodes[0].reverse, 256, 16) == header['merkle_root']
+		raise "Invalid root" unless @sp.changebase(nodes[0].reverse, 256, 16) == header[:merkle_root]
 
 		merkle_siblings = 2 #(0..layers.length - 1).each{|i| [layers[i][(index >> i) ^ 1]]}
 
