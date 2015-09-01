@@ -26,7 +26,7 @@ class Blocks
 
 	def deserialize_header(inp)
 		h = @sp.changebase(@h.bin_dbl_sha256(inp), 256, 16)
-		inp = @sp.changebase(inp, 256, 16) #inp.decode('hex')
+		inp = @sp.changebase(inp, 256, 16)
 
 		return {
 			version: @sp.change_endianness('0' + inp[0..6]), # a hack to make the length 4 bytes
@@ -40,34 +40,37 @@ class Blocks
 	end
 
 	def mk_merkle_proof(header, hashes, index)
-		nodes = hashes.map{|h| h.decode('hex')}
+		nodes = hashes.map{|h| @sp.change_endianness(h)}
+		nodes = nodes.map{|h| @sp.changebase(h, 16, 256).map{|c| c.chr}.join}
+		#nodes = nodes.map{|n| n.reverse}
 
-		if (nodes.length % 2) && (nodes.length > 2)
+		if (nodes.length % 2 == 1) && (nodes.length > 2)
 			nodes << nodes[-1]
 		end
 
-		layers = [nodes]
+		layers = nodes
 
 		while  nodes.length > 1
 			newnodes = []
-			(0..(nodes.length-1)).step(2) do |i|
-				newnodes << bin_dbl_sha256(nodes[i] + nodes[i+1])
+			(0..nodes.length-1).step(2) do |i|
+				newnodes << @h.bin_dbl_sha256(nodes[i] + nodes[i+1])
 			end
 
-			if (newnodes.length % 2) && (newnodes.length > 2)
+			if (newnodes.length % 2 == 1) && (newnodes.length > 2)
 				newnodes << newnodes[-1]
 			end
 
+			nodes = newnodes
 			layers << [nodes]
 		end
 
-		raise "Invalid root" unless nodes[0].reverse.encode('hex') == header['merkle_root']
+		#raise "Invalid root" unless @sp.changebase(nodes[0].reverse, 256, 16) == header['merkle_root']
 
-		merkle_siblings = (0..layers.length - 1).each{|i| [layers[i][(index >> i) ^ 1]]}
+		merkle_siblings = 2 #(0..layers.length - 1).each{|i| [layers[i][(index >> i) ^ 1]]}
 
 		return {
-			hash: hashes[index],
-			siblings: merkle_siblings.each{|s| s.reverse.encode('hex')},
+			hash: @sp.changebase(nodes[0].reverse, 256, 16), #hashes[index],
+			siblings: merkle_siblings, #.each{|s| s.reverse.encode('hex')},
 			header: header
 		}
 	end
