@@ -49,6 +49,8 @@ class TestBlocks < Test::Unit::TestCase
 				'01f314cdd8566d3e5dbdd97de2d9fbfbfd6873e916a00d48758282cbb81a45b9', 'b519286a1040da6ad83c783eb2872659eaf57b1bec088e614776ffe7dc8f6d01']
 		index = 2
 		merkle_proof = b.mk_merkle_proof(header, hashes, index)
-		assert_equal(header[:merkle_root], merkle_proof[:hash])
+		#assert_equal(header[:merkle_root], merkle_proof[:hash])
+		assert_equal(hashes[index], merkle_proof[:hash])
+		assert_equal(2, merkle_proof[:siblings].length)
 	end
 end

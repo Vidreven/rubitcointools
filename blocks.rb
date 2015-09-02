@@ -48,7 +48,7 @@ class Blocks
 			nodes << nodes[-1]
 		end
 
-		layers = nodes
+		layers = [nodes]
 
 		while  nodes.length > 1
 			newnodes = []
@@ -61,16 +61,22 @@ class Blocks
 			end
 
 			nodes = newnodes
-			layers << [nodes]
+			layers << nodes
 		end
 
+		# Sanity check to make sure merkle root is valid
 		raise "Invalid root" unless @sp.changebase(nodes[0].reverse, 256, 16) == header[:merkle_root]
 
-		merkle_siblings = 2 #(0..layers.length - 1).each{|i| [layers[i][(index >> i) ^ 1]]}
+		merkle_siblings = []
+		(0..layers.length - 1).each{|i| merkle_siblings << layers[i][(index >> i) ^ 1]}
+
+		merkle_siblings.compact!
+		merkle_siblings = merkle_siblings.map{|s| @sp.changebase(s, 256, 16)}
+		merkle_siblings = merkle_siblings.map{|s| @sp.change_endianness(s)}
 
 		return {
-			hash: @sp.changebase(nodes[0].reverse, 256, 16), #hashes[index],
-			siblings: merkle_siblings, #.each{|s| s.reverse.encode('hex')},
+			hash: hashes[index],
+			siblings: merkle_siblings,
 			header: header
 		}
 	end
