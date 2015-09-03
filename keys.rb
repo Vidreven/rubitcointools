@@ -55,9 +55,13 @@ class Keys
 		# 0x02/0x03 + 64 hex chars
 		return '0' + (2 + (pub[1] % 2)).to_s + @sp.encode(pub[0], 16, 64) if format == 'hex_compressed'
 
-		return @sp.encode(pub[0], 256, 32) + @sp.encode(pub[1], 256, 32) if format == 'bin_electrum'
+		# 32 bytes + 32 bytes = 64 bytes
+		#return @sp.encode(pub[0], 256, 32) + @sp.encode(pub[1], 256, 32) if format == 'bin_electrum'
+		return encode_pubkey(pub, 'bin')[1..-1] if format == 'bin_electrum'
 
-		return @sp.encode(pub[0], 16, 64) + @sp.encode(pub[1], 16, 64) if format == 'hex_electrum'
+		#128 hex chars
+		#return @sp.encode(pub[0], 16, 64) + @sp.encode(pub[1], 16, 64) if format == 'hex_electrum'
+		return encode_pubkey(pub, 'hex')[2..-1] if format == 'hex_electrum'
 
 		raise "Invalid format!"
 	end

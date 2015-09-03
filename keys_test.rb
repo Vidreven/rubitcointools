@@ -32,6 +32,10 @@ class TestKeys < Test::Unit::TestCase
 		assert_equal(2.chr, k.encode_pubkey([5, 10], 'bin_compressed')[0])
 		assert_equal('hex', k.get_pubkey_format(k.encode_pubkey([5, 10], 'hex')))
 		assert_equal('hex_compressed', k.get_pubkey_format(k.encode_pubkey([5, 10], 'hex_compressed')))
+		x = '0479BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F8179'
+		y = '8483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8'
+		assert_equal(64, k.encode_pubkey(x + y, 'bin_electrum').length)
+		assert_equal(128, k.encode_pubkey(x + y, 'hex_electrum').length)
 	end
 
 	def test_get_privkey_format
