@@ -88,6 +88,7 @@ class Specials
 	end
 
 	# Encode from base 10 to base 'base'
+	# Padding for base 256 doesn't work
 	def encode(value, base, minlen = 0)
 
 		return value.to_s if base == 10
