@@ -27,7 +27,7 @@ class Deterministic
 	def electrum_privkey(seed, n, for_change=0)
 		seed = electrum_stretch(seed) if seed.length == 32
 		mpk = electrum_mpk(seed)
-		offset = @h.bin_dbl_sha256(n.to_s + ":" + for_change.to_s + ":" + mpk)#.map{|c| c.chr}.join
+		offset = @h.bin_dbl_sha256(n.to_s + ":" + for_change.to_s + ":" + mpk)
 		offset = @sp.changebase(offset, 256, 16)
 		return @k.add_privkeys(seed, offset)
 	end
@@ -43,27 +43,28 @@ class Deterministic
 			mpk = masterkey
 		end
 
-		bin_mpk = encode_pubkey(mpk, 'bin_electrum')
-		offset = dbl_sha256(n.unpack('C*') + ":" + for_change.unpack('C') + ":" + mpk.pack('C*'))
+		bin_mpk = @k.encode_pubkey(mpk, 'bin_electrum').join
+		offset = @h.bin_dbl_sha256(n.to_s + ":" + for_change.to_s + ":" + bin_mpk)
+		offset = @k.privtopub(offset)
+		offset = '0' + @sp.changebase(offset, 256, 16)
 
-		return add_pubkeys('04'+mpk, privtopub(offset))
+		return @k.add_pubkeys('04'+ mpk, offset)
 	end
 
 	# seed/stretched seed/pubkey -> address (convenience method)
 	def electrum_address(masterkey, n, for_change=0, version=0)
-		return pubkey_to_address(electrum_pubkey(masterkey, n, for_change), version)
+		return @k.pubkey_to_address(electrum_pubkey(masterkey, n, for_change), version)
 	end
 
 	# Given a master public key, a private key from that wallet and its index,
 	# cracks the secret exponent which can be used to generate all other private
 	# keys in the wallet
 	def crack_electrum_wallet(mpk, pk, n, for_change=0)
-		bin_mpk = encode_pubkey(mpk, 'bin_electrum')
-		offset = dbl_sha256(n.to_s + ":" + for_change.to_s + ":" + bin_mpk)
+		bin_mpk = @k.encode_pubkey(mpk, 'bin_electrum')
+		offset = @h.bin_dbl_sha256(n.to_s + ":" + for_change.to_s + ":" + bin_mpk)
 		return subtract_privkeys(pk, offset)
 	end
 
-	# Below code ASSUMES binary inputs and compressed pubkeys
 	MAINNET_PRIVATE = "\x04\x88\xAD\xE4"
 	MAINNET_PUBLIC = "\x04\x88\xB2\x1E"
 	TESTNET_PRIVATE = "\x04\x35\x83\x94"
@@ -76,31 +77,32 @@ class Deterministic
 		vbytes, depth, fingerprint, oldi, chaincode, key = rawtuple
 		i = i.to_i
 
-		if PRIVATE.includes? vbytes
+		if PRIVATE.include? vbytes
 			priv = key
-			pub = privtopub(key)
+			pub = @k.privtopub(key)
 		else
 			pub = key
 		end
 
 		if i >= 2**31
-			if PUBLIC.includes? vbytes
+			if PUBLIC.include? vbytes
 				raise "Can't do private derivation on public key!"
 			end
 
-			h = HMAC.digest("SHA256", chaincode, "0" + priv[0..32] + encode(i, 256, 4))
+			#h = HMAC.digest("SHA512", chaincode, "0" + priv[0..31] + @sp.encode(i, 256, 4))
+			h = OpenSSL::HMAC.digest("SHA512", chaincode, "0" + priv + @sp.encode(i, 16, 4))
 		else
-			h = HMAC.digest("SHA256", chaincode, pub + encode(i, 256, 4))
+			h = OpenSSL::HMAC.digest("SHA512", chaincode, @k.compress(pub) + @sp.encode(i, 16, 4))
 		end
 
-		if PRIVATE.includes? vbytes
-			newkey = add_privkeys(h[0..32] + 1.chr, priv)
-			fingerprint = bin_hash160(privtopub(key))[0..4]
+		if PRIVATE.include? vbytes
+			newkey = @k.add_privkeys(h[0..31], priv)
+			fingerprint = @h.bin_hash160(@k.privtopub(key))[0..4]
 		end
 
-		if PUBLIC.includes? vbytes
-			newkey = add_pubkeys(compress(privtopub(h[0..32])), key)
-			fingerprint = bin_hash160(key)[0..4]
+		if PUBLIC.include? vbytes
+			newkey = @k.add_pubkeys(@k.privtopub(h[0..31]).join, key)
+			fingerprint = @h.bin_hash160(key)[0..4]
 		end
 
 		return [vbytes, depth + 1, fingerprint, i, h[32..-1], newkey]

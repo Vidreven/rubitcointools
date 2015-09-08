@@ -19,4 +19,33 @@ class TestDeterministic < Test::Unit::TestCase
 		seed = '1111111111111111111111111111111111111111111111111111111111111111'
 		assert_equal(64, d.electrum_privkey(seed, 1).length)
 	end
+
+	def test_electrum_pubkey
+		d = Deterministic.new
+		x = '79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F8179'
+		y = '8483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8'
+		assert_equal(130, d.electrum_pubkey(x+y, 1).length)
+	end
+
+	def test_electrum_address
+		d = Deterministic.new
+		x = '79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F8179'
+		y = '8483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8'
+		assert_equal("1", d.electrum_address(x+y, 1)[0])
+	end
+
+	def test_raw_bip32_ckd
+		d = Deterministic.new
+		vbytes = ["\x04\x88\xAD\xE4", "\x04\x88\xB2\x1E"]
+		depth = 1
+		fingerprint = "ABCDEFBA"
+		i = 0
+		chaincode = '1' * 64
+		x = '0479BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F8179'
+		y = '8483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8'
+		pubkey = x + y
+		privkey = '1111111111111111111111111111111111111111111111111111111111111111'
+		assert_equal(6, d.raw_bip32_ckd([vbytes[1], depth, fingerprint, i, chaincode, pubkey], i).length)
+		assert_equal(6, d.raw_bip32_ckd([vbytes[0], depth, fingerprint, i, chaincode, privkey], i).length)
+	end
 end
