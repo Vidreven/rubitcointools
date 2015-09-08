@@ -45,7 +45,15 @@ class TestDeterministic < Test::Unit::TestCase
 		y = '8483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8'
 		pubkey = x + y
 		privkey = '1111111111111111111111111111111111111111111111111111111111111111'
-		assert_equal(6, d.raw_bip32_ckd([vbytes[1], depth, fingerprint, i, chaincode, pubkey], i).length)
-		assert_equal(6, d.raw_bip32_ckd([vbytes[0], depth, fingerprint, i, chaincode, privkey], i).length)
+		pubckd = d.raw_bip32_ckd([vbytes[1], depth, fingerprint, i, chaincode, pubkey], i)
+		privckd = d.raw_bip32_ckd([vbytes[0], depth, fingerprint, i, chaincode, privkey], i)
+		assert_equal(6, pubckd.length)
+		assert_equal(6, privckd.length)
+		assert_equal(vbytes[1], pubckd[0])
+		assert_equal(2, pubckd[1])
+		assert_equal(4, pubckd[2].length)
+		assert_equal(32, pubckd[4].length)
+		assert_equal(65, pubckd[5].length)
+		assert_equal(32, privckd[4].length)
 	end
 end

@@ -97,12 +97,12 @@ class Deterministic
 
 		if PRIVATE.include? vbytes
 			newkey = @k.add_privkeys(h[0..31], priv)
-			fingerprint = @h.bin_hash160(@k.privtopub(key))[0..4]
+			fingerprint = @h.bin_hash160(@k.privtopub(key))[0..3]
 		end
 
 		if PUBLIC.include? vbytes
 			newkey = @k.add_pubkeys(@k.privtopub(h[0..31]).join, key)
-			fingerprint = @h.bin_hash160(key)[0..4]
+			fingerprint = @h.bin_hash160(key)[0..3]
 		end
 
 		return [vbytes, depth + 1, fingerprint, i, h[32..-1], newkey]
