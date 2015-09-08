@@ -1,7 +1,6 @@
 require_relative 'ecc'
 require_relative 'specials'
 require_relative 'keys'
-require 'base64'
 require 'openssl'
 
 class ECDSA
@@ -88,5 +87,3 @@ class ECDSA
 		return false
 	end
 end
-
-#p ECDSA.new.encode_sig('316eb3cad8b66fcf1494a6e6f9542c3555addbf337f04b62bf4758483fdc881d', 'bf46d26cef45d998a2cb5d2d0b8342d70973fa7c3c37ae72234696524b2bc812')
