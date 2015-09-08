@@ -7,7 +7,7 @@ class TestKeys < Test::Unit::TestCase
 	def test_get_pubkey_format
 		k = Keys.new
 		assert_equal('decimal', k.get_pubkey_format(['abcdefgh']))
-		assert_equal('bin', k.get_pubkey_format('4' + 'a' * 64))
+		assert_equal('bin', k.get_pubkey_format(4.chr + 'a' * 64))
 		assert_equal('hex', k.get_pubkey_format('04' + 'b' * 128))
 		assert_equal('bin_compressed', k.get_pubkey_format('2' + '1' * 32))
 		assert_equal('hex_compressed', k.get_pubkey_format('03' + 'c' * 64))
@@ -19,7 +19,7 @@ class TestKeys < Test::Unit::TestCase
 		k = Keys.new
 		assert_equal([1, 2], k.decode_pubkey([1, 2], 'decimal'))
 		assert_equal([1, 2], k.decode_pubkey([1, 2]))
-		assert_equal([0, 0], k.decode_pubkey('4' + (0.chr) * 64))
+		assert_equal([0, 0], k.decode_pubkey(4.chr + (0.chr) * 64))
 		assert_equal([0, ECC::P], k.decode_pubkey('2' + (0.chr) * 32))
 		assert_equal([0, 0], k.decode_pubkey('04' + '0' * 128))
 		assert_equal([1, ECC::P], k.decode_pubkey('03' + '0' * 63 + '1'))

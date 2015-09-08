@@ -18,7 +18,7 @@ class Keys
 	def get_pubkey_format(pub)
 		if (pub.is_a? Array)
 			return 'decimal'
-		elsif (pub.length == 65) && (pub[0] == '4')
+		elsif (pub.length == 65) && (pub[0] == 4.chr)
 			return 'bin'
 		elsif (pub.length == 130) && (pub[0..1] == '04')
 			return 'hex'
