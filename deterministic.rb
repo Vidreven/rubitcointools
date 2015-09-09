@@ -65,10 +65,10 @@ class Deterministic
 		return subtract_privkeys(pk, offset)
 	end
 
-	MAINNET_PRIVATE = "\x04\x88\xAD\xE4"
-	MAINNET_PUBLIC = "\x04\x88\xB2\x1E"
-	TESTNET_PRIVATE = "\x04\x35\x83\x94"
-	TESTNET_PUBLIC = "\x04\x35\x87\xCF"
+	MAINNET_PRIVATE = "0488ade4" #"\x04\x88\xAD\xE4"
+	MAINNET_PUBLIC = "0488b21e" #"\x04\x88\xB2\x1E"
+	TESTNET_PRIVATE = "04358394" #"\x04\x35\x83\x94"
+	TESTNET_PUBLIC = "043587cf" #"\x04\x35\x87\xCF"
 	PRIVATE = [MAINNET_PRIVATE, TESTNET_PRIVATE]
 	PUBLIC = [MAINNET_PUBLIC, TESTNET_PUBLIC]
 
@@ -90,9 +90,9 @@ class Deterministic
 			end
 
 			#h = HMAC.digest("SHA512", chaincode, "0" + priv[0..31] + @sp.encode(i, 256, 4))
-			h = OpenSSL::HMAC.digest("SHA512", chaincode, "0" + priv + @sp.encode(i, 16, 4))
+			h = OpenSSL::HMAC.digest("SHA512", chaincode, "0" + priv + @sp.encode(i, 16, 8))
 		else
-			h = OpenSSL::HMAC.digest("SHA512", chaincode, @k.compress(pub) + @sp.encode(i, 16, 4))
+			h = OpenSSL::HMAC.digest("SHA512", chaincode, @k.compress(pub) + @sp.encode(i, 16, 8))
 		end
 
 		if PRIVATE.include? vbytes
@@ -108,20 +108,30 @@ class Deterministic
 		return [vbytes, depth + 1, fingerprint, i, h[32..-1], newkey]
 	end
 
+	# Assumes hex input and compressed pubkey
 	def bip32_serialize(rawtuple)
 		vbytes, depth, fingerprint, i, chaincode, key = rawtuple
-		i = encode(i, 256, 4)
 
-		chaincode = encode(hash_to_int(chaincode), 256, 32)
-		if PRIVATE.includes? vbytes
-			keydata = "0" + key[0..-2]
+		i = @sp.encode(i, 256).map{|c| c.chr}.join
+		i = i.rjust(4, 0.chr)
+
+		chaincode = @sp.encode(@sp.hash_to_int(chaincode), 256).map{|c| c.chr}.join
+		chaincode = chaincode.rjust(32, 0.chr)
+
+		key = @sp.changebase(key, 16, 256).map{|c| c.chr}.join
+		if PRIVATE.include? vbytes
+			keydata = 0.chr + key
 		else
 			keydata = key
 		end
 
-		bindata = vbytes + from_int_to_byte(depth % 256) + fingerprint + i + chaincode + keydata
+		vbytes = @sp.changebase(vbytes, 16, 256).map{|c| c.chr}.join
 
-		return changebase(bindata + bin_dbl_sha256(bindata)[0..4], 256, 58)
+		bindata = vbytes + depth.chr + fingerprint + i + chaincode + keydata
+
+		checksum = @h.bin_dbl_sha256(bindata)[0..3]
+
+		return @sp.changebase(bindata + checksum, 256, 58)
 	end
 
 	def bip32_deserialize(data)

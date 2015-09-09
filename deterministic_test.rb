@@ -36,7 +36,7 @@ class TestDeterministic < Test::Unit::TestCase
 
 	def test_raw_bip32_ckd
 		d = Deterministic.new
-		vbytes = ["\x04\x88\xAD\xE4", "\x04\x88\xB2\x1E"]
+		vbytes = ["0488ade4", "0488b21e"]
 		depth = 1
 		fingerprint = "ABCDEFBA"
 		i = 0
@@ -55,5 +55,19 @@ class TestDeterministic < Test::Unit::TestCase
 		assert_equal(32, pubckd[4].length)
 		assert_equal(65, pubckd[5].length)
 		assert_equal(32, privckd[4].length)
+	end
+
+	def test_bip32_serialize
+		d = Deterministic.new
+		vbytes = ["0488ade4", "0488b21e"]
+		depth = 1
+		fingerprint = 1.chr + 0.chr + 4.chr + 9.chr
+		i = 1
+		chaincode = '1' * 64
+		privkey = '1111111111111111111111111111111111111111111111111111111111111111'
+		x = '0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F817984'
+		privckd = d.bip32_serialize([vbytes[0], depth, fingerprint, i, chaincode, privkey])
+		pubckd = d.bip32_serialize([vbytes[1], depth, fingerprint, i, chaincode, x])
+		assert_match("xpub", pubckd)
 	end
 end
