@@ -163,7 +163,7 @@ class Deterministic
 			newvbytes = TESTNET_PUBLIC
 		end
 
-		return [newvbytes, depth, fingerprint, i, chaincode, privtopub(key)]
+		return [newvbytes, depth, fingerprint, i, chaincode, @k.privtopub(key)]
 	end
 
 	def bip32_privtopub(data)

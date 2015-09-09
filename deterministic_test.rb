@@ -93,4 +93,16 @@ class TestDeterministic < Test::Unit::TestCase
 		assert_equal(privkey, dpriv[5])
 		assert_equal(x, dpub[5])
 	end
+
+	def test_raw_bip32_privtopub
+		d = Deterministic.new
+		vbytes = "0488ade4"
+		depth = 1
+		fingerprint = "11004499"
+		i = 1
+		chaincode = '1' * 64
+		privkey = '1111111111111111111111111111111111111111111111111111111111111111'
+		assert_equal(6, d.raw_bip32_privtopub([vbytes, depth, fingerprint, i, chaincode, privkey]).length)
+		assert_equal(130, d.raw_bip32_privtopub([vbytes, depth, fingerprint, i, chaincode, privkey])[5].length)
+	end
 end
