@@ -127,6 +127,8 @@ class Deterministic
 
 		vbytes = @sp.changebase(vbytes, 16, 256).map{|c| c.chr}.join
 
+		fingerprint = @sp.changebase(fingerprint, 16, 256).map{|c| c.chr}.join
+
 		bindata = vbytes + depth.chr + fingerprint + i + chaincode + keydata
 
 		checksum = @h.bin_dbl_sha256(bindata)[0..3]
@@ -135,19 +137,19 @@ class Deterministic
 	end
 
 	def bip32_deserialize(data)
-		dbin = changebase(data, 58, 256)
+		dbin = @sp.changebase(data, 58, 256).map{|c| c.chr}.join
 
-		raise "Invalid checksum" unless bin_dbl_sha256(dbin[0..-4])[0..4] == dbin[-4..-1]
+		raise "Invalid checksum" unless @h.bin_dbl_sha256(dbin[0..-5])[0..3] == dbin[-4..-1]
 
-		vbytes = dbin[0..4]
-		depth = from_byte_to_int(dbin[4])
-		fingerprint = dbin[5..9]
-		i = decode(dbin[9..13], 256)
-		chaincode = dbin[13..45]
-		if PRIVATE.includes? vbytes
-			key = dbin[46..78] + "1"
+		vbytes = @sp.changebase(dbin[0..3], 256, 16).rjust(8, '0')
+		depth = dbin[4].ord
+		fingerprint = @sp.changebase(dbin[5..8], 256, 16).rjust(8, '0')
+		i = @sp.decode(dbin[9..12], 256)
+		chaincode = @sp.changebase(dbin[13..44], 256, 16)
+		if PRIVATE.include? vbytes
+			key = @sp.changebase(dbin[46..77], 256, 16).rjust(64, '0')
 		else
-			key = dbin[45..78]
+			key = key = @sp.changebase(dbin[45..77], 256, 16).rjust(66, '0')
 		end
 
 		return [vbytes, depth, fingerprint, i, chaincode, key]
