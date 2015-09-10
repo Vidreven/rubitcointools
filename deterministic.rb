@@ -171,7 +171,7 @@ class Deterministic
 	def bip32_master_key(seed, vbytes=MAINNET_PRIVATE)
 		h = OpenSSL::HMAC.digest("SHA512", "Bitcoin seed", seed)
 
-		return bip32_serialize([vbytes, 0, 0.chr * 4, 0, h[32..-1], h[0..31]])
+		return bip32_serialize([vbytes, 0, 0.chr * 4, 0.chr * 4, h[32..-1], h[0..31]])
 	end
 
 	def bip32_bin_extract_key(data)

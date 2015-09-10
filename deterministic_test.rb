@@ -112,6 +112,7 @@ class TestDeterministic < Test::Unit::TestCase
 	def test_bip32_master_key
 		d = Deterministic.new
 		seed = "ab" * 64
-		#assert_equal(6, d.bip32_master_key(seed).length)
+		master = d.bip32_master_key(seed)
+		assert_match('xprv', master)
 	end
 end
