@@ -1,4 +1,5 @@
 require_relative 'deterministic'
+require_relative 'specials'
 require 'test/unit'
 
 class TestDeterministic < Test::Unit::TestCase
@@ -59,13 +60,14 @@ class TestDeterministic < Test::Unit::TestCase
 
 	def test_bip32_serialize
 		d = Deterministic.new
+		sp = Specials.new
 		vbytes = ["0488ade4", "0488b21e"]
 		depth = 1
-		fingerprint = "11004499"
-		i = 1
-		chaincode = '1' * 64
-		privkey = '1111111111111111111111111111111111111111111111111111111111111111'
-		x = '0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798'
+		fingerprint = 1.chr + 0.chr + 4.chr + 9.chr
+		i = (1.chr).rjust(4, 0.chr)
+		chaincode = 1.chr * 32
+		privkey = sp.changebase('1111111111111111111111111111111111111111111111111111111111111111', 16, 256).map{|c| c.chr}.join
+		x = sp.changebase('0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798', 16, 256).map{|c| c.chr}.join.rjust(33, 0.chr)
 		privckd = d.bip32_serialize([vbytes[0], depth, fingerprint, i, chaincode, privkey])
 		pubckd = d.bip32_serialize([vbytes[1], depth, fingerprint, i, chaincode, x])
 		assert_match("xpub", pubckd)
@@ -73,20 +75,21 @@ class TestDeterministic < Test::Unit::TestCase
 
 	def test_bip32_deserialize
 		d = Deterministic.new
+		sp = Specials.new
 		vbytes = ["0488ade4", "0488b21e"]
 		depth = 1
-		fingerprint = "11004499"
-		i = 1
-		chaincode = '1' * 64
-		privkey = '1111111111111111111111111111111111111111111111111111111111111111'
-		x = '0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798'
+		fingerprint = 1.chr + 0.chr + 4.chr + 9.chr
+		i = (1.chr).rjust(4, 0.chr)
+		chaincode = 1.chr * 32
+		privkey = sp.changebase('1111111111111111111111111111111111111111111111111111111111111111', 16, 256).map{|c| c.chr}.join
+		x = sp.changebase('0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798', 16, 256).map{|c| c.chr}.join.rjust(33, 0.chr)
 		privckd = d.bip32_serialize([vbytes[0], depth, fingerprint, i, chaincode, privkey])
 		pubckd = d.bip32_serialize([vbytes[1], depth, fingerprint, i, chaincode, x])
 		dpriv = d.bip32_deserialize(privckd)
 		dpub = d.bip32_deserialize(pubckd)
 		assert_equal(6, dpriv.length)
-		assert_equal(vbytes[0], dpriv[0])
-		assert_equal(depth, dpriv[1])
+		assert_equal("4".hex.chr + "88".hex.chr + "ad".hex.chr + "e4".hex.chr, dpriv[0])
+		assert_equal(depth.chr, dpriv[1])
 		assert_equal(fingerprint, dpriv[2])
 		assert_equal(i, dpriv[3])
 		assert_equal(chaincode, dpriv[4])
@@ -104,5 +107,11 @@ class TestDeterministic < Test::Unit::TestCase
 		privkey = '1111111111111111111111111111111111111111111111111111111111111111'
 		assert_equal(6, d.raw_bip32_privtopub([vbytes, depth, fingerprint, i, chaincode, privkey]).length)
 		assert_equal(130, d.raw_bip32_privtopub([vbytes, depth, fingerprint, i, chaincode, privkey])[5].length)
+	end
+
+	def test_bip32_master_key
+		d = Deterministic.new
+		seed = "ab" * 64
+		#assert_equal(6, d.bip32_master_key(seed).length)
 	end
 end

@@ -62,7 +62,7 @@ class Deterministic
 	def crack_electrum_wallet(mpk, pk, n, for_change=0)
 		bin_mpk = @k.encode_pubkey(mpk, 'bin_electrum')
 		offset = @h.bin_dbl_sha256(n.to_s + ":" + for_change.to_s + ":" + bin_mpk)
-		return subtract_privkeys(pk, offset)
+		return @k.subtract_privkeys(pk, offset)
 	end
 
 	MAINNET_PRIVATE = "0488ade4" #"\x04\x88\xAD\xE4"
@@ -108,17 +108,12 @@ class Deterministic
 		return [vbytes, depth + 1, fingerprint, i, h[32..-1], newkey]
 	end
 
-	# Assumes hex input and compressed pubkey
+	# Assumes byte input and compressed pubkey
 	def bip32_serialize(rawtuple)
 		vbytes, depth, fingerprint, i, chaincode, key = rawtuple
 
-		i = @sp.encode(i, 256).map{|c| c.chr}.join
-		i = i.rjust(4, 0.chr)
-
-		chaincode = @sp.encode(@sp.hash_to_int(chaincode), 256).map{|c| c.chr}.join
 		chaincode = chaincode.rjust(32, 0.chr)
 
-		key = @sp.changebase(key, 16, 256).map{|c| c.chr}.join
 		if PRIVATE.include? vbytes
 			keydata = 0.chr + key
 		else
@@ -126,8 +121,6 @@ class Deterministic
 		end
 
 		vbytes = @sp.changebase(vbytes, 16, 256).map{|c| c.chr}.join
-
-		fingerprint = @sp.changebase(fingerprint, 16, 256).map{|c| c.chr}.join
 
 		bindata = vbytes + depth.chr + fingerprint + i + chaincode + keydata
 
@@ -141,15 +134,16 @@ class Deterministic
 
 		raise "Invalid checksum" unless @h.bin_dbl_sha256(dbin[0..-5])[0..3] == dbin[-4..-1]
 
-		vbytes = @sp.changebase(dbin[0..3], 256, 16).rjust(8, '0')
-		depth = dbin[4].ord
-		fingerprint = @sp.changebase(dbin[5..8], 256, 16).rjust(8, '0')
-		i = @sp.decode(dbin[9..12], 256)
-		chaincode = @sp.changebase(dbin[13..44], 256, 16)
-		if PRIVATE.include? vbytes
-			key = @sp.changebase(dbin[46..77], 256, 16).rjust(64, '0')
+		vbytes = dbin[0..3] #@sp.changebase(dbin[0..3], 256, 16).rjust(8, '0')
+		depth = dbin[4] #.ord
+		fingerprint =dbin[5..8] # @sp.changebase(dbin[5..8], 256, 16).rjust(8, '0')
+		i = dbin[9..12] #@sp.decode(dbin[9..12], 256)
+		chaincode = dbin[13..44] #@sp.changebase(dbin[13..44], 256, 16)
+
+		if PRIVATE.include? @sp.changebase(vbytes, 256, 16).rjust(8, '0')
+			key = dbin[46..77] #@sp.changebase(dbin[46..77], 256, 16).rjust(64, '0')
 		else
-			key = key = @sp.changebase(dbin[45..77], 256, 16).rjust(66, '0')
+			key = dbin[45..77] #@sp.changebase(dbin[45..77], 256, 16).rjust(66, '0')
 		end
 
 		return [vbytes, depth, fingerprint, i, chaincode, key]
@@ -175,9 +169,9 @@ class Deterministic
 	end
 
 	def bip32_master_key(seed, vbytes=MAINNET_PRIVATE)
-		h = HMAC.digest("SHA512", "Bitcoin seed", seed)
+		h = OpenSSL::HMAC.digest("SHA512", "Bitcoin seed", seed)
 
-		return bip32_serialize([vbytes, 0, 0.chr * 4, 0, h[32..-1], h[0..32] + "1"])
+		return bip32_serialize([vbytes, 0, 0.chr * 4, 0, h[32..-1], h[0..31]])
 	end
 
 	def bip32_bin_extract_key(data)
