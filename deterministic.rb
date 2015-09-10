@@ -179,7 +179,7 @@ class Deterministic
 	end
 
 	def bip32_extract_key(data)
-		return bip32_bin_extract_key(data).to_s(16)
+		return @sp.changebase(bip32_bin_extract_key(data), 256, 16).rjust(64, '0')
 	end
 
 	# Exploits the same vulnerability as above in Electrum wallets

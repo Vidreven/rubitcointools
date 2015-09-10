@@ -115,4 +115,30 @@ class TestDeterministic < Test::Unit::TestCase
 		master = d.bip32_master_key(seed)
 		assert_match('xprv', master)
 	end
+
+	def test_bip32_bin_extract_key
+		d = Deterministic.new
+		sp = Specials.new
+		vbytes = "0488ade4"
+		depth = 1
+		fingerprint = 1.chr + 0.chr + 4.chr + 9.chr
+		i = (1.chr).rjust(4, 0.chr)
+		chaincode = 1.chr * 32
+		privkey = sp.changebase('1111111111111111111111111111111111111111111111111111111111111111', 16, 256).map{|c| c.chr}.join
+		privckd = d.bip32_serialize([vbytes, depth, fingerprint, i, chaincode, privkey])
+		assert_equal(32, d.bip32_bin_extract_key(privckd).length)
+	end
+
+	def test_bip32_extract_key
+		d = Deterministic.new
+		sp = Specials.new
+		vbytes = "0488ade4"
+		depth = 1
+		fingerprint = 1.chr + 0.chr + 4.chr + 9.chr
+		i = (1.chr).rjust(4, 0.chr)
+		chaincode = 1.chr * 32
+		privkey = sp.changebase('1111111111111111111111111111111111111111111111111111111111111111', 16, 256).map{|c| c.chr}.join
+		privckd = d.bip32_serialize([vbytes, depth, fingerprint, i, chaincode, privkey])
+		assert_equal(64, d.bip32_extract_key(privckd).length)
+	end
 end
