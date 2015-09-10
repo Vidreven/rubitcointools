@@ -63,8 +63,8 @@ class TestKeys < Test::Unit::TestCase
 	def test_encode_privkey
 		k = Keys.new
 		assert_equal(1234, k.encode_privkey(1234, 'decimal'))
-		assert_equal([0.chr * 32], k.encode_privkey(0.chr * 32, 'bin'))
-		assert_equal([0.chr * 32], k.encode_privkey(0, 'bin'))
+		assert_equal(0.chr * 32, k.encode_privkey(0.chr * 32, 'bin'))
+		assert_equal(0.chr * 32, k.encode_privkey(0, 'bin'))
 		assert_equal(0.chr * 32 + 1.chr, k.encode_privkey(0, 'bin_compressed'))
 		assert_equal('0' * 64, k.encode_privkey(0, 'hex'))
 		assert_equal('0' * 64 + '01', k.encode_privkey(0, 'hex_compressed'))

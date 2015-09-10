@@ -43,7 +43,7 @@ class Deterministic
 			mpk = masterkey
 		end
 
-		bin_mpk = @k.encode_pubkey(mpk, 'bin_electrum').join
+		bin_mpk = @k.encode_pubkey(mpk, 'bin_electrum')
 		offset = @h.bin_dbl_sha256(n.to_s + ":" + for_change.to_s + ":" + bin_mpk)
 		offset = @k.privtopub(offset)
 		offset = '0' + @sp.changebase(offset, 256, 16)
@@ -65,10 +65,10 @@ class Deterministic
 		return @k.subtract_privkeys(pk, offset)
 	end
 
-	MAINNET_PRIVATE = "0488ade4" #"\x04\x88\xAD\xE4"
-	MAINNET_PUBLIC = "0488b21e" #"\x04\x88\xB2\x1E"
-	TESTNET_PRIVATE = "04358394" #"\x04\x35\x83\x94"
-	TESTNET_PUBLIC = "043587cf" #"\x04\x35\x87\xCF"
+	MAINNET_PRIVATE = "0488ade4"
+	MAINNET_PUBLIC = "0488b21e"
+	TESTNET_PRIVATE = "04358394"
+	TESTNET_PUBLIC = "043587cf"
 	PRIVATE = [MAINNET_PRIVATE, TESTNET_PRIVATE]
 	PUBLIC = [MAINNET_PUBLIC, TESTNET_PUBLIC]
 
@@ -101,7 +101,7 @@ class Deterministic
 		end
 
 		if PUBLIC.include? vbytes
-			newkey = @k.add_pubkeys(@k.privtopub(h[0..31]).join, key)
+			newkey = @k.add_pubkeys(@k.privtopub(h[0..31]), key)
 			fingerprint = @h.bin_hash160(key)[0..3]
 		end
 
@@ -120,7 +120,7 @@ class Deterministic
 			keydata = key
 		end
 
-		vbytes = @sp.changebase(vbytes, 16, 256).map{|c| c.chr}.join
+		vbytes = @sp.changebase(vbytes, 16, 256)
 
 		bindata = vbytes + depth.chr + fingerprint + i + chaincode + keydata
 
@@ -130,20 +130,20 @@ class Deterministic
 	end
 
 	def bip32_deserialize(data)
-		dbin = @sp.changebase(data, 58, 256).map{|c| c.chr}.join
+		dbin = @sp.changebase(data, 58, 256)
 
 		raise "Invalid checksum" unless @h.bin_dbl_sha256(dbin[0..-5])[0..3] == dbin[-4..-1]
 
-		vbytes = dbin[0..3] #@sp.changebase(dbin[0..3], 256, 16).rjust(8, '0')
-		depth = dbin[4] #.ord
-		fingerprint =dbin[5..8] # @sp.changebase(dbin[5..8], 256, 16).rjust(8, '0')
-		i = dbin[9..12] #@sp.decode(dbin[9..12], 256)
-		chaincode = dbin[13..44] #@sp.changebase(dbin[13..44], 256, 16)
+		vbytes = dbin[0..3]
+		depth = dbin[4]
+		fingerprint =dbin[5..8]
+		i = dbin[9..12]
+		chaincode = dbin[13..44]
 
 		if PRIVATE.include? @sp.changebase(vbytes, 256, 16).rjust(8, '0')
-			key = dbin[46..77] #@sp.changebase(dbin[46..77], 256, 16).rjust(64, '0')
+			key = dbin[46..77]
 		else
-			key = dbin[45..77] #@sp.changebase(dbin[45..77], 256, 16).rjust(66, '0')
+			key = dbin[45..77]
 		end
 
 		return [vbytes, depth, fingerprint, i, chaincode, key]
@@ -193,9 +193,9 @@ class Deterministic
 
 		raise "Can't crack private derivation!" if i >= 2**31
 
-		h = HMAC.digest("SHA512", pchaincode, pkey + encode(i, 256, 4))
+		h = OpenSSL::HMAC.digest("SHA512", pchaincode, pkey + encode(i, 256, 4))
 
-		pprivkey = subtract_privkeys(key, h[0..32] + "1")
+		pprivkey = @k.subtract_privkeys(key, h[0..32] + "1")
 
 		if vbytes == MAINNET_PUBLIC
 			newvbytes = MAINNET_PRIVATE

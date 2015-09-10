@@ -38,7 +38,8 @@ class TestSpecials < Test::Unit::TestCase
 		assert_equal('1010', @sp.encode(@sp.decode('1010', 2), 2))
 		assert_equal('3c', @sp.encode(@sp.decode('3C', 16), 16))
 		assert_equal('ba', @sp.encode(@sp.decode('ba', 32), 32))
-		assert_equal('10', @sp.encode(256, 256).join)
+		assert_equal(1.chr + 0.chr, @sp.encode(256, 256))
+		assert_equal(0.chr + 1.chr + 0.chr, @sp.encode(256, 256, 3))
 	end
 
 	def test_changebase
@@ -51,7 +52,7 @@ class TestSpecials < Test::Unit::TestCase
 		assert_match('bi', @sp.changebase("40", 10, 32))
 		assert_match("1", @sp.changebase(1.chr, 256, 10))
 		assert_match("49", @sp.changebase("1", 256, 10))
-		assert_match('1', @sp.changebase("1", 10, 256).to_s)
+		assert_match(1.chr, @sp.changebase("1", 10, 256))
 		assert_equal('14k7', @sp.changebase("10", 256, 58, 4))
 	end
 

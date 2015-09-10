@@ -16,7 +16,7 @@ class Blocks
 			@sp.change_endianness(inp[:bits]) +
 			@sp.change_endianness(inp[:nonce])
 
-		o = @sp.changebase(o, 16, 256).map{|c| c.chr}.join
+		o = @sp.changebase(o, 16, 256)
 		h = @sp.changebase(@h.bin_dbl_sha256(o), 256, 16)
 
 		raise "Incorrect hash " + h unless @sp.change_endianness(h) == inp[:hash]
@@ -42,7 +42,7 @@ class Blocks
 	# Returns a Merkle path of the transaction to the root?
 	def mk_merkle_proof(header, hashes, index)
 		nodes = hashes.map{|h| @sp.change_endianness(h)}
-		nodes = nodes.map{|h| @sp.changebase(h, 16, 256).map{|c| c.chr}.join}
+		nodes = nodes.map{|h| @sp.changebase(h, 16, 256)}
 
 		if (nodes.length % 2 == 1) && (nodes.length > 2)
 			nodes << nodes[-1]

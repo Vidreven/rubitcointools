@@ -35,8 +35,8 @@ class ECDSA
 		v = '1' * 32
 		k = '0' * 32
 
-		priv = @k.encode_privkey(priv, 'bin').map{|c| c.chr}.join
-		msghash = @sp.encode(@sp.hash_to_int(msghash), 256, 32).map{|c| c.chr}.join
+		priv = @k.encode_privkey(priv, 'bin')
+		msghash = @sp.encode(@sp.hash_to_int(msghash), 256, 32)
 
 		k = OpenSSL::HMAC.digest("SHA256", k, v + '0' + priv + msghash)
 		v = OpenSSL::HMAC.digest("SHA256", k, v)

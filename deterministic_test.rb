@@ -66,8 +66,8 @@ class TestDeterministic < Test::Unit::TestCase
 		fingerprint = 1.chr + 0.chr + 4.chr + 9.chr
 		i = (1.chr).rjust(4, 0.chr)
 		chaincode = 1.chr * 32
-		privkey = sp.changebase('1111111111111111111111111111111111111111111111111111111111111111', 16, 256).map{|c| c.chr}.join
-		x = sp.changebase('0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798', 16, 256).map{|c| c.chr}.join.rjust(33, 0.chr)
+		privkey = sp.changebase('1111111111111111111111111111111111111111111111111111111111111111', 16, 256)
+		x = sp.changebase('0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798', 16, 256).rjust(33, 0.chr)
 		privckd = d.bip32_serialize([vbytes[0], depth, fingerprint, i, chaincode, privkey])
 		pubckd = d.bip32_serialize([vbytes[1], depth, fingerprint, i, chaincode, x])
 		assert_match("xpub", pubckd)
@@ -81,8 +81,8 @@ class TestDeterministic < Test::Unit::TestCase
 		fingerprint = 1.chr + 0.chr + 4.chr + 9.chr
 		i = (1.chr).rjust(4, 0.chr)
 		chaincode = 1.chr * 32
-		privkey = sp.changebase('1111111111111111111111111111111111111111111111111111111111111111', 16, 256).map{|c| c.chr}.join
-		x = sp.changebase('0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798', 16, 256).map{|c| c.chr}.join.rjust(33, 0.chr)
+		privkey = sp.changebase('1111111111111111111111111111111111111111111111111111111111111111', 16, 256)
+		x = sp.changebase('0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798', 16, 256).rjust(33, 0.chr)
 		privckd = d.bip32_serialize([vbytes[0], depth, fingerprint, i, chaincode, privkey])
 		pubckd = d.bip32_serialize([vbytes[1], depth, fingerprint, i, chaincode, x])
 		dpriv = d.bip32_deserialize(privckd)
@@ -124,7 +124,7 @@ class TestDeterministic < Test::Unit::TestCase
 		fingerprint = 1.chr + 0.chr + 4.chr + 9.chr
 		i = (1.chr).rjust(4, 0.chr)
 		chaincode = 1.chr * 32
-		privkey = sp.changebase('1111111111111111111111111111111111111111111111111111111111111111', 16, 256).map{|c| c.chr}.join
+		privkey = sp.changebase('1111111111111111111111111111111111111111111111111111111111111111', 16, 256)
 		privckd = d.bip32_serialize([vbytes, depth, fingerprint, i, chaincode, privkey])
 		assert_equal(32, d.bip32_bin_extract_key(privckd).length)
 	end
@@ -137,7 +137,7 @@ class TestDeterministic < Test::Unit::TestCase
 		fingerprint = 1.chr + 0.chr + 4.chr + 9.chr
 		i = (1.chr).rjust(4, 0.chr)
 		chaincode = 1.chr * 32
-		privkey = sp.changebase('1111111111111111111111111111111111111111111111111111111111111111', 16, 256).map{|c| c.chr}.join
+		privkey = sp.changebase('1111111111111111111111111111111111111111111111111111111111111111', 16, 256)
 		privckd = d.bip32_serialize([vbytes, depth, fingerprint, i, chaincode, privkey])
 		assert_equal(64, d.bip32_extract_key(privckd).length)
 	end

@@ -44,10 +44,10 @@ class Keys
 		return pub if format =='decimal'
 
 		# 0x04 + 32 bytes + 32 bytes = 65 bytes
-		return [4.chr] + @sp.encode(pub[0], 256, 32).map{|c| c.chr} + @sp.encode(pub[1], 256, 32).map{|c| c.chr} if format == 'bin'
+		return 4.chr + @sp.encode(pub[0], 256, 32) + @sp.encode(pub[1], 256, 32) if format == 'bin'
 
 		# 0x02/0x03 + 32 bytes = 33 bytes
-		return [(2 + pub[1] % 2).chr] + @sp.encode(pub[0], 256, 32) if format == 'bin_compressed'
+		return (2 + pub[1] % 2).chr + @sp.encode(pub[0], 256, 32) if format == 'bin_compressed'
 
 		# 0x04 + 128 hex chars
 		return '04' + @sp.encode(pub[0], 16, 64) + @sp.encode(pub[1], 16, 64) if format == 'hex'
@@ -83,7 +83,7 @@ class Keys
 		elsif format == 'hex'
 			return [@sp.decode(pub[2..65], 16), @sp.decode(pub[66..130], 16)]
 		elsif format == 'hex_compressed'
-			return decode_pubkey(@sp.changebase(pub, 16, 256).map{|c| c.chr}, 'bin_compressed')
+			return decode_pubkey(@sp.changebase(pub, 16, 256), 'bin_compressed')
 		elsif format == 'bin_electrum'
 			return [@sp.decode(pub[0..31], 256), @sp.decode(pub[32..64], 256)]
 		elsif format == 'hex_electrum'
@@ -125,8 +125,8 @@ class Keys
 		return @sp.decode(priv[0..31], 256) if format == 'bin_compressed'
 		return @sp.decode(priv, 16) if format == 'hex'
 		return @sp.decode(priv[0..64], 16) if format == 'hex_compressed'
-		return @sp.decode(@sp.b58check_to_bin(priv).map{|c| c.chr}.join, 256) if format == 'wif'
-		return @sp.decode(@sp.b58check_to_bin(priv)[0..32].map{|c| c.chr}.join, 256) if format == 'wif_compressed'
+		return @sp.decode(@sp.b58check_to_bin(priv), 256) if format == 'wif'
+		return @sp.decode(@sp.b58check_to_bin(priv)[0..32], 256) if format == 'wif_compressed'
 
 		raise "WIF does not represent privkey"
 	end
@@ -142,15 +142,15 @@ class Keys
 		elsif format == 'bin'
 			return @sp.encode(priv, 256, 32)
 		elsif format == 'bin_compressed'
-			return @sp.encode(priv, 256, 32)[0] + 1.chr
+			return @sp.encode(priv, 256, 32) + 1.chr
 		elsif format == 'hex'
 			return @sp.encode(priv, 16, 64)
 		elsif format == 'hex_compressed'
 			return @sp.encode(priv, 16, 64) + '01'
 		elsif format == 'wif'
-			return @sp.bin_to_b58check(@sp.encode(priv, 256, 32).map{|c| c.chr}.join, 128 + vbyte.to_i)
+			return @sp.bin_to_b58check(@sp.encode(priv, 256, 32), 128 + vbyte.to_i)
 		elsif format == 'wif_compressed'
-			return @sp.bin_to_b58check((@sp.encode(priv, 256, 32) + [1]).map{|c| c.chr}.join, 128 + vbyte.to_i)
+			return @sp.bin_to_b58check((@sp.encode(priv, 256, 32) + 1.chr), 128 + vbyte.to_i)
 		else
 			raise "Invalid format"
 		end
@@ -226,7 +226,7 @@ class Keys
 	def pubkey_to_address(pubkey, magicbyte=0)
 		pubkey = encode_pubkey(pubkey, 'bin')
 
-		return @sp.bin_to_b58check(@h.bin_hash160(pubkey.join), magicbyte)
+		return @sp.bin_to_b58check(@h.bin_hash160(pubkey), magicbyte)
 	end
 
 	alias :pubtoaddr :pubkey_to_address

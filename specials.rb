@@ -89,22 +89,18 @@ class Specials
 	end
 
 	# Encode from base 10 to base 'base'
-	# Padding for base 256 doesn't work
 	def encode(value, base, minlen = 0)
 
 		return value.to_s if base == 10
 
 		code_string = get_code_string(base)
 		result_bytes = []
-		padding = ""
 
 		while value > 0
 			curcode = code_string[value % base]
 			result_bytes = result_bytes.unshift(curcode.ord)
 			value /= base
 		end
-
-		pad_size = minlen - result_bytes.length
 
 		padding_element =
 		if base == 256
@@ -115,12 +111,7 @@ class Specials
 			"0"
 		end
 
-		if pad_size > 0
-			padding = padding_element * pad_size
-			result = base == 256 ? result_bytes.unshift(padding) : padding + result_bytes.pack("C*")
-		else
-			result = base == 256 ? result_bytes : result_bytes.pack("C*")
-		end
+		result = base == 256 ? result_bytes.map{|b| b.chr}.join.rjust(minlen, padding_element) : result_bytes.pack("C*").rjust(minlen, padding_element)
 
 		return result		
 	end
