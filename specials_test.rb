@@ -3,14 +3,6 @@ require 'test/unit'
 
 class TestSpecials < Test::Unit::TestCase
 
-	# def test_lpad
-	# 	@sp = Specials.new
-	# 	assert_equal('012', @sp.lpad("12", "0", 3))
-	# 	assert_equal(4, @sp.lpad("12", "0", 4).length)
-	# 	assert_not_equal("12", @sp.lpad("12", "0", 3))
-	# 	assert_not_equal("120", @sp.lpad("12", "0", 3))
-	# end
-
 	def test_get_code_string
 		@sp = Specials.new
 		assert_match('0123456789', @sp.get_code_string(10))

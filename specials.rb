@@ -18,11 +18,6 @@ class Specials
 		@h = Hashes.new
 	end
 
-	# def lpad(msg, symbol, length)
-	# 	return msg if msg.length > length
-	# 	return symbol * (length - msg.length) + msg
-	# end
-
 	def get_code_string(base)
 		return @code_strings[base] if @code_strings.has_key?(base)
 		raise "Invalid base!"
@@ -30,7 +25,6 @@ class Specials
 
 	def changebase(string, from, to, minlen = 0)
 		return encode(decode(string, from), to, minlen) unless to == from
-		#return lpad(string, get_code_string(from)[0], minlen)
 		return string.rjust(minlen, get_code_string(from)[0])
 	end
 
