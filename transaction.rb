@@ -100,6 +100,44 @@ class Transaction
 		return raw
 	end
 
+	# Hashing transactions for signing
+
+	SIGHASH_ALL = 1
+	SIGHASH_NONE = 2
+	SIGHASH_SINGLE = 3
+	SIGHASH_ANYONECANPAY = 0x81
+
+	def signature_form(tx, i, script, hashcode=SIGHASH_ALL)
+		i, hashcode = i.to_i, hashcode.to_i
+
+		if tx.respond_to? :each_char
+			return serialize(signature_form(deserialize(tx), i, script, hashcode))
+		end
+
+		newtx = deepcopy(tx)
+
+		newtx[:ins].each do |input|
+			input[:script] = ""
+		end
+
+		newtx[:ins][i][:script] = script
+
+		if hashcode == SIGHASH_NONE
+			newtx[:outs] = []
+		elsif hashcode == SIGHASH_SINGLE
+			newtx[:outs].each_index do |index|
+				next if index == i
+				newtx[:outs][index][:value] = 2**64 - 1
+				newtx[:outs][index][:script] = ""
+				#newtx[:ins][index][:sequence] = '00000000'
+			end
+		elsif hashcode == SIGHASH_ANYONECANPAY
+			newtx[:ins] = [newtx[:ins][i]]
+		end
+
+		return newtx
+	end
+
 	private
 
 	# accepts length in bytes
@@ -122,5 +160,9 @@ class Transaction
 	def read_var_string(tx)
 		size = read_var_int(tx)
 		return read_and_modify(size, tx)
+	end
+
+	def deepcopy(obj)
+		return Marshal.load(Marshal.dump(obj))
 	end
 end
