@@ -1,9 +1,11 @@
 require_relative 'specials'
+require_relative 'hashes'
 
 class Transaction
 
 	def initialize
 		@sp = Specials.new
+		@h = Hashes.new
 	end
 
 	# Decides if object is a base string
@@ -26,23 +28,6 @@ class Transaction
 
 		return true
 	end
-
-	# def json_changebase(obj, &block)
-
-	# 	if obj.is_a? String
-	# 		yield obj
-	# 	elsif obj.respond_to? :each
-	# 		obj.map do |o|
-	# 			yield o
-	# 		end
-	# 	elsif obj.respond_to? :each_pair
-	# 		obj.each_pair do |k, v|
-	# 			k[v] = yield v
-	# 		end
-	# 	else
-	# 		return obj
-	# 	end
-	# end
 
 	def deserialize(tx)
 		obj = {ins: [], outs: []}
@@ -136,6 +121,20 @@ class Transaction
 		end
 
 		return newtx
+	end
+
+	def txhash(tx, hashcode='None')
+		if hashcode == 'None'
+			result = @h.bin_dbl_sha256(tx)
+		else
+			result = @h.bin_dbl_sha256(tx + hashcode.to_s.rjust(8, '0'))
+		end
+
+		return @sp.change_endianness(@sp.changebase(result, 256, 16))
+	end
+
+	def bin_txhash(tx, hashcode='None')
+		return @sp.changebase(txhash(tx, hashcode), 16, 256)
 	end
 
 	private
