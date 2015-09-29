@@ -154,4 +154,17 @@ class TestTransaction < Test::Unit::TestCase
 			'4dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac00000000'
 		assert_equal(32, t.bin_txhash(tx).length)
 	end
+
+	def test_ecdsa_tx_sign
+		t = Transaction.new
+		tx = '010000000175db462b20dd144dd143f5314270569c0a61191f1378c164ce4262e9bff1b07900000' +
+			'0008b4830450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c70' +
+			'3302203b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31014104bca' +
+			'69c59dc7a6d8ef4d3043bdcb626e9e29837b9beb143168938ae8165848bfc788d6ff4cdf1ef843e' +
+			'6a9ccda988b323d12a367dd758261dd27a63f18f56ce77ffffffff0133f50100000000001976a91' +
+			'4dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac00000000'
+		priv = Specials.new.decode('E9873D79C6D87DC0FB6A5778633389F4453213303DA61F20BD67FC233AA33262', 16)
+		signature = t.ecdsa_tx_sign(tx, priv)
+		assert_equal('30', signature[0..1])
+	end
 end

@@ -1,11 +1,13 @@
 require_relative 'specials'
 require_relative 'hashes'
+require_relative 'ecdsa'
 
 class Transaction
 
 	def initialize
 		@sp = Specials.new
 		@h = Hashes.new
+		@dsa = ECDSA.new
 	end
 
 	# Decides if object is a base string
@@ -135,6 +137,11 @@ class Transaction
 
 	def bin_txhash(tx, hashcode='None')
 		return @sp.changebase(txhash(tx, hashcode), 16, 256)
+	end
+
+	def ecdsa_tx_sign(tx, priv, hashcode=SIGHASH_ALL)
+		rawsig = @dsa.ecdsa_raw_sign(bin_txhash(tx, hashcode), priv)
+		return @dsa.encode_sig(*rawsig) + @sp.encode(hashcode, 16, 2)
 	end
 
 	private

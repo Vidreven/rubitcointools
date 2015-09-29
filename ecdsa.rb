@@ -16,12 +16,13 @@ class ECDSA
 	# DER encoding BIP 66 ?
 	# 0x30 + 1 byte length descriptor + 0x02 + 1 byte R length descriptor + R + 0x02 + 1 byte S length descriptor + S
 	def encode_sig(v = '30', r, s)
+		v, r, s = v.to_s, r.to_s, s.to_s
 		raise "r cannot  be negative" if (r[0..1] == '00') && (r[2..3] < '80')
 		raise "s cannot  be negative" if (s[0..1] == '00') && (s[2..3] < '80')
 		total_length = (10 + r.length + s.length).to_s(16)
 		r_length = (r.length).to_s(16)
 		s_length = (s.length).to_s(16)
-		result = v + total_length + "02" + r_length + r + "02" + s_length + s
+		result = '30' + total_length + "02" + r_length + r + "02" + s_length + s
 
 		return result
 	end
