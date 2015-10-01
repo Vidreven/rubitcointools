@@ -144,6 +144,10 @@ class Transaction
 		return @dsa.encode_sig(*rawsig) + @sp.encode(hashcode, 16, 2)
 	end
 
+	def ecdsa_tx_verify(tx, sig, pub, hashcode=SIGHASH_ALL)
+		return @dsa.ecdsa_raw_verify(bin_txhash(tx, hashcode), @dsa.decode_sig(sig), pub)
+	end
+
 	private
 
 	# accepts length in bytes
