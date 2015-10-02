@@ -82,6 +82,8 @@ class ECDSA
 		beta = xcubedaxb.to_bn.mod_exp((ECC::P+1)/4, ECC::P)
 		y = beta % 2 == 1 ? beta : (ECC::P - beta)
 
+		# If xcubedaxb is not a quadratic residue, then r cannot be the x coord
+    	# for a point on the curve, and so the sig is invalid
 		return false if (xcubedaxb - y*y) % ECC::P != 0
 
 		z = @sp.hash_to_int(msghash)

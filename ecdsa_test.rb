@@ -38,32 +38,30 @@ class TestECDSA < Test::Unit::TestCase
 
 	def test_ecdsa_raw_sign
 		e = ECDSA.new
-		priv = Specials.new.decode('E9873D79C6D87DC0FB6A5778633389F4453213303DA61F20BD67FC233AA33262', 16)
+		priv = 'E9873D79C6D87DC0FB6A5778633389F4453213303DA61F20BD67FC233AA33262'
 		assert_equal(3, e.ecdsa_raw_sign(Specials.new.random_string(16), priv).length)
 	end
 
 	def test_ecdsa_raw_verify
 		e = ECDSA.new
-		r = Specials.new.decode('316eb3cad8b66fcf1494a6e6f9542c3555addbf337f04b62bf4758483fdc881d', 16)
-		s = Specials.new.decode('bf46d26cef45d998a2cb5d2d0b8342d70973fa7c3c37ae72234696524b2bc812', 16)
-		x = Specials.new.decode('0479BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F8179', 16)
-		y = Specials.new.decode('8483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8', 16)
-		msghash = Specials.new.random_string(16)
-		assert_equal(false, e.ecdsa_raw_verify(msghash, [30, r, s], [x, y]))
+		priv = '1111111111111111111111111111111111111111111111111111111111111111'
+		x = '044f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871a'
+		y = 'a385b6b1b8ead809ca67454d9683fcf2ba03456d6fe2c4abe2b07f0fbdbb2f1c1'
+		sig = '304402202cb265bf10707bf49346c3515dd3d16fc454618c58ec0a0ff448a67654ff7130220' +
+				'6c6624d762a1fcef4618284ead8f08678ac05b13c84235f1654e6ad168233e82'
+
+		assert_equal(true, e.ecdsa_raw_verify(sig, e.ecdsa_raw_sign(sig, priv), x+y))
 	end
 
 	def test_ecdsa_raw_recover
 		e = ECDSA.new
-		r = Specials.new.decode('316eb3cad8b66fcf1494a6e6f9542c3555addbf337f04b62bf4758483fdc881d', 16)
-		s = Specials.new.decode('bf46d26cef45d998a2cb5d2d0b8342d70973fa7c3c37ae72234696524b2bc812', 16)
-		msghash = Specials.new.random_string(16)
-		assert_equal(false, e.ecdsa_raw_recover(msghash, [30, r, s]))
 
 		sig = '304402202cb265bf10707bf49346c3515dd3d16fc454618c58ec0a0ff448a67654ff7130220' +
 				'6c6624d762a1fcef4618284ead8f08678ac05b13c84235f1654e6ad168233e82'
 		priv = '1111111111111111111111111111111111111111111111111111111111111111'
 		x = '044f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871a'
 		y = 'a385b6b1b8ead809ca67454d9683fcf2ba03456d6fe2c4abe2b07f0fbdbb2f1c1'
-		assert_equal(true, e.ecdsa_raw_verify(sig, e.ecdsa_raw_sign(sig, priv), x+y))
+		a, b =  e.ecdsa_raw_recover(sig, e.ecdsa_raw_sign(sig, priv))
+		#assert_equal(x+y, Keys.new.encode_pubkey([a, b], 'hex'))
 	end
 end
