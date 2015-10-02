@@ -77,19 +77,19 @@ class ECDSA
 	def ecdsa_raw_recover(msghash, vrs)
 		v, r, s = vrs
 
-		x = r
-		#beta = ((x*x*x + A*x + B) ** (P+1)/4) % P
-		beta = (x*x*x + ECC::A*x + ECC::B)
-		beta = @e.square_and_multiply(beta, ECC::P)
-		y = v % 2 ^ beta % 2 ? beta : (ECC::P - beta)
-		z = @sp.hash_to_int(msghash)
-		gz = @e.fast_multiply(ECC::G, (ECC::N - z) % ECC::N) #jacobian_multiply([Gx, Gy, 1], (N - z) % N)
-		xy = @e.fast_multiply([x, y], s) #jacobian_multiply([x, y, 1], s)
-		qr = @e.fast_add(gz, xy) #jacobian_add(gz, xy)
-		q = @e.fast_multiply(qr, @e.inv(r, ECC::N)) #jacobian_multiply(qr, inv(r, N))
-		#q = from_jacobian(q)
+		x = r.to_i
+		xcubedaxb = (x*x*x + ECC::A*x + ECC::B)
+		beta = xcubedaxb.to_bn.mod_exp((ECC::P+1)/4, ECC::P)
+		y = beta % 2 == 1 ? beta : (ECC::P - beta)
 
-		return q if ecdsa_raw_verify(msghash, vrs, q)
-		return false
+		return false if (xcubedaxb - y*y) % ECC::P != 0
+
+		z = @sp.hash_to_int(msghash)
+		gz = @e.fast_multiply(ECC::G, (ECC::N - z) % ECC::N)
+		xy = @e.fast_multiply([x, y], s.to_i)
+		qr = @e.fast_add(gz, xy)
+		p, q = @e.fast_multiply(qr, @e.inv(r.to_i, ECC::N))
+
+		return [p, q]
 	end
 end

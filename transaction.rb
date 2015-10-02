@@ -154,7 +154,7 @@ class Transaction
 		z = bin_txhash(tx, hashcode)
 		v, r, s = @dsa.decode_sig(sig)
 
-		left, right = @dsa.ecdsa_raw_recover(z, [0, r, s])
+		left, right = @dsa.ecdsa_raw_recover(z, [v, r, s])
 
 		return @k.encode_pubkey([left, right], 'hex')
 	end
