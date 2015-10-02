@@ -8,6 +8,7 @@ class Transaction
 		@sp = Specials.new
 		@h = Hashes.new
 		@dsa = ECDSA.new
+		@k = Keys.new
 	end
 
 	# Decides if object is a base string
@@ -125,18 +126,18 @@ class Transaction
 		return newtx
 	end
 
-	def txhash(tx, hashcode='None')
+	def bin_txhash(tx, hashcode='None')
 		if hashcode == 'None'
 			result = @h.bin_dbl_sha256(tx)
 		else
 			result = @h.bin_dbl_sha256(tx + hashcode.to_s.rjust(8, '0'))
 		end
 
-		return @sp.change_endianness(@sp.changebase(result, 256, 16))
+		return @sp.change_endianness(result)
 	end
 
-	def bin_txhash(tx, hashcode='None')
-		return @sp.changebase(txhash(tx, hashcode), 16, 256)
+	def txhash(tx, hashcode='None')
+		return @sp.changebase(bin_txhash(tx, hashcode), 256, 16)
 	end
 
 	def ecdsa_tx_sign(tx, priv, hashcode=SIGHASH_ALL)
@@ -146,6 +147,16 @@ class Transaction
 
 	def ecdsa_tx_verify(tx, sig, pub, hashcode=SIGHASH_ALL)
 		return @dsa.ecdsa_raw_verify(bin_txhash(tx, hashcode), @dsa.decode_sig(sig), pub)
+	end
+
+	# recovers pubkey
+	def ecdsa_tx_recover(tx, sig, hashcode=SIGHASH_ALL)
+		z = bin_txhash(tx, hashcode)
+		v, r, s = @dsa.decode_sig(sig)
+
+		left, right = @dsa.ecdsa_raw_recover(z, [0, r, s])
+
+		return @k.encode_pubkey([left, right], 'hex')
 	end
 
 	private
