@@ -69,7 +69,7 @@ class Keys
 	# Decode pubkey from format to decimal
 	def decode_pubkey(pub, format = 'None')
 		format = get_pubkey_format(pub) if format == 'None'
-		
+
 		if format == 'decimal'
 			return pub
 		elsif format == 'bin'
@@ -77,7 +77,7 @@ class Keys
 		elsif format == 'bin_compressed'
 			x = @sp.decode(pub[1..32], 256)
 			beta = (x*x*x + ECC::A*x + ECC::B)
-			beta = @e.square_and_multiply(beta, ECC::P)
+			beta = @e.pow(beta, (ECC::P+1)/4, ECC::P)
 			y = ((beta + pub[0].to_i) % 2) ? (ECC::P - beta) : beta
 			return [x, y]
 		elsif format == 'hex'

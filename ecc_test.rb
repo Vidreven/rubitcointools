@@ -59,4 +59,12 @@ class TestECC < Test::Unit::TestCase
 		e = ECC.new
 		assert_equal(e.fast_multiply(e.fast_multiply(ECC::G, 20), 30), e.fast_multiply(e.fast_multiply(ECC::G, 30), 20))
 	end
+
+	def test_pow
+		e = ECC.new
+		base = 56576513649176532955305617254616790498672209379484940581393603843805619269570
+		exp = 2**256 - 2**32 - 977
+		res = e.pow(base, (exp+1)/4, exp)
+		assert_equal(Bignum, res.class)
+	end
 end

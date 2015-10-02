@@ -79,7 +79,7 @@ class ECDSA
 
 		x = r.to_i
 		xcubedaxb = (x*x*x + ECC::A*x + ECC::B)
-		beta = xcubedaxb.to_bn.mod_exp((ECC::P+1)/4, ECC::P)
+		beta = @e.pow(xcubedaxb, (ECC::P+1)/4, ECC::P)
 		y = beta % 2 == 1 ? beta : (ECC::P - beta)
 
 		# If xcubedaxb is not a quadratic residue, then r cannot be the x coord

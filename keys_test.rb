@@ -20,9 +20,9 @@ class TestKeys < Test::Unit::TestCase
 		assert_equal([1, 2], k.decode_pubkey([1, 2], 'decimal'))
 		assert_equal([1, 2], k.decode_pubkey([1, 2]))
 		assert_equal([0, 0], k.decode_pubkey(4.chr + (0.chr) * 64))
-		assert_equal([0, ECC::P], k.decode_pubkey('2' + (0.chr) * 32))
+		assert_equal(0, k.decode_pubkey('2' + (0.chr) * 32)[0])
 		assert_equal([0, 0], k.decode_pubkey('04' + '0' * 128))
-		assert_equal([1, ECC::P], k.decode_pubkey('03' + '0' * 63 + '1'))
+		assert_equal(1, k.decode_pubkey('03' + '0' * 63 + '1')[0])
 	end
 
 	def test_encode_pubkey

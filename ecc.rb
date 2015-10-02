@@ -1,5 +1,6 @@
 require_relative 'specials'
 require 'securerandom'
+require 'openssl'
 
 class ECC
 	
@@ -111,15 +112,8 @@ class ECC
 		 return from_jacobian(jacobian_multiply(to_jacobian(a), n))
 	end
 
-	def square_and_multiply(base, exponent)
-		exp = [254, 30, 7, 6, 5, 4, 2]
-		temp_res = []
-
-		exp.each do |e|
-			t = e.times{base = (base * base) % exponent}
-			temp_res << t
-		end
-
-		return temp_res.reduce(:/)
+	# Modular exponentiation using opessl
+	def pow(base, exp, mod)
+		return base.to_bn.mod_exp(exp, mod).to_i
 	end
 end
