@@ -1,7 +1,6 @@
 require_relative 'ecc'
 require_relative 'specials'
 require_relative 'keys'
-require 'openssl'
 
 class ECDSA
 
@@ -11,7 +10,7 @@ class ECDSA
 		@k = Keys.new
 	end
 
-	# DER encoding BIP 66 ?
+	# DER encoding BIP 66
 	# 0x30 + 1 byte length descriptor + 0x02 + 1 byte R length descriptor + R + 0x02 + 1 byte S length descriptor + S
 	def encode_sig(v = '30', r, s)
 		v, r, s = v.to_s, r.to_s, s.to_s
@@ -57,7 +56,7 @@ class ECDSA
 		z = @sp.hash_to_int(msghash)
 		k = deterministic_generate_k(msghash, priv)
 		r, y = @e.fast_multiply(ECC::G, k)
-		s = @e.inv(k, ECC::N) * (z + r * @k.decode_privkey(priv)) % ECC::N
+		s = @e.inv(k, ECC::N) * (z + r * @k.decode_privkey(priv)) % ECC::N # BIP62 low s value
 
 		return 30 + (y % 2), r, s
 	end

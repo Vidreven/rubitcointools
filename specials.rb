@@ -44,9 +44,14 @@ class Specials
 
 	def b58check_to_bin(inp)
 		leadingzbyte = inp.match('^1*')[0].to_i
-		data = (0.chr) * leadingzbyte + changebase(inp, 58, 16)
+		#data = (0.chr) * leadingzbyte + changebase(inp, 58, 16)
+		data = '00' * leadingzbyte + changebase(inp, 58, 16)
 
 		return changebase(data[2..-9], 16, 256)
+	end
+
+	def b58check_to_hex(inp)
+		return changebase(b58check_to_bin(inp), 256, 16)
 	end
 
 	# Returned string is twice as long

@@ -58,6 +58,12 @@ class TestSpecials < Test::Unit::TestCase
 		assert_equal(32, sp.b58check_to_bin('5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ').length)
 	end
 
+	def test_b58check_to_hex
+		sp = Specials.new
+		addr = '1KKKK6N21XKo48zWKuQKXdvSsCf95ibHFa'
+		assert_equal('c8e90996c7c6080ee06284600c684ed904d14c5c', sp.b58check_to_hex(addr))
+	end
+
 	def test_random_string
 		assert_equal(10, Specials.new.random_string(10).bytesize)
 	end
