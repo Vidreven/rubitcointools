@@ -61,7 +61,9 @@ class TestSpecials < Test::Unit::TestCase
 	def test_b58check_to_hex
 		sp = Specials.new
 		addr = '1KKKK6N21XKo48zWKuQKXdvSsCf95ibHFa'
+		multi = '3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy'
 		assert_equal('c8e90996c7c6080ee06284600c684ed904d14c5c', sp.b58check_to_hex(addr))
+		assert_equal('b472a266d0bd89c13706a4132ccfb16f7c3b9fcb', sp.b58check_to_hex(multi))
 	end
 
 	def test_random_string
