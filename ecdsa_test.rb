@@ -8,25 +8,36 @@ class TestECDSA < Test::Unit::TestCase
 
 	def test_encode_sig
 		e = ECDSA.new
-		r = '316eb3cad8b66fcf1494a6e6f9542c3555addbf337f04b62bf4758483fdc881d'
-		s = 'bf46d26cef45d998a2cb5d2d0b8342d70973fa7c3c37ae72234696524b2bc812'
+		r = '008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c7033'
+		s = '3b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31'
 		sig = e.encode_sig('30', r, s)
+
+		# Minimum and maximum size constraints.
 		assert_equal(false, sig.length > 142)
 		assert_equal(false, sig.length < 18)
+		# A signature is of type 0x30 (compound).
 		assert_equal('30', sig[0..1])
-		assert_equal(sig[2..3].to_i(16), sig.length - 2)
-		assert_equal(true, 10 + sig[6..7].to_i(16) < sig.length - 2)
-		assert_equal(true, 10 + sig[6..7].to_i(16) + sig[74..75].to_i(16) == sig.length - 2)
+		# Make sure the length covers the entire signature.
+		assert_equal(sig[2..3].to_i(16) * 2, sig.length - 4)
+		# Make sure the length of the S element is still inside the signature.
+		assert_equal(true, 8 + sig[6..7].to_i(16) * 2 < sig.length - 2)
+		# Verify that the length of the signature matches the sum of the length
+		# of the elements.
+		assert_equal(true, 8 + sig[6..7].to_i(16) * 2 + sig[76..77].to_i(16) * 2 == sig.length - 4)
+		# Zero-length integers are not allowed for R.
 		assert_not_equal(0, sig[6..7].to_i(16))
-		assert_not_equal(0x80, sig[10..11].to_i(16) & 0x80)
+		# Negative numbers are not allowed for R.
+		assert_not_equal(0x80, sig[8..9].to_i(16) & 0x80)
+		# Zero-length integers are not allowed for S.
 		assert_not_equal(0, sig[74..75].to_i(16))
+		# Negative numbers are not allowed for S.
 		assert_not_equal(0x80, sig[78..79].to_i(16) & 0x80)
 	end
 
 	def test_decode_sig
 		e = ECDSA.new
-		r = '316eb3cad8b66fcf1494a6e6f9542c3555addbf337f04b62bf4758483fdc881d'
-		s = 'bf46d26cef45d998a2cb5d2d0b8342d70973fa7c3c37ae72234696524b2bc812'
+		r = '008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c7033'
+		s = '3b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31'
 		assert_equal(['30', r, s], e.decode_sig(e.encode_sig('30', r, s)))
 	end
 

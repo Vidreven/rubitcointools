@@ -16,9 +16,9 @@ class ECDSA
 		v, r, s = v.to_s, r.to_s, s.to_s
 		raise "r cannot  be negative" if (r[0..1] == '00') && (r[2..3] < '80')
 		raise "s cannot  be negative" if (s[0..1] == '00') && (s[2..3] < '80')
-		total_length = (10 + r.length + s.length).to_s(16)
-		r_length = (r.length).to_s(16)
-		s_length = (s.length).to_s(16)
+		total_length = (4 + r.length / 2 + s.length / 2).to_s(16) # Length of the signature does not include the length field itself
+		r_length = (r.length / 2).to_s(16)
+		s_length = (s.length / 2).to_s(16)
 		result = '30' + total_length + "02" + r_length + r + "02" + s_length + s
 		return result
 	end
@@ -26,11 +26,11 @@ class ECDSA
 	def decode_sig(sig)
 		#return sig[0..1], sig[8..71], sig[76..-1]
 		v = sig[0..1]
-		len = sig[2..3].to_i(16)
-		r_len = sig[6..7].to_i(16)
+		len = sig[2..3].to_i(16) * 2
+		r_len = sig[6..7].to_i(16) * 2
 		r = sig[8..(7+r_len)] # sig[8..84]
-		s_len = sig[(10+r_len)..(11+r_len)].to_i (16)
-		s = sig[(12+r_len)..len+1] # sig[89..-1]
+		s_len = sig[(10+r_len)..(11+r_len)].to_i (16) * 2
+		s = sig[(12+r_len)..len+3] # sig[89..-1]
 		return v, r, s
 	end
 
