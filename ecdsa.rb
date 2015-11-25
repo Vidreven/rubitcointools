@@ -24,23 +24,21 @@ class ECDSA
 	end
 
 	def decode_sig(sig)
-		#return sig[0..1], sig[8..71], sig[76..-1]
 		v = sig[0..1]
 		len = sig[2..3].to_i(16) * 2
 		r_len = sig[6..7].to_i(16) * 2
-		r = sig[8..(7+r_len)] # sig[8..84]
+		r = sig[8..(7+r_len)]
 		s_len = sig[(10+r_len)..(11+r_len)].to_i (16) * 2
-		s = sig[(12+r_len)..len+3] # sig[89..-1]
+		s = sig[(12+r_len)..len+3]
 		return v, r, s
 	end
 
 	# https://tools.ietf.org/html/rfc6979#section-3.2
 	def deterministic_generate_k(msghash, priv)
-		v = 1.chr * 32 #'1' * 64
-		k = 0.chr * 32 #'0' * 64
+		v = 1.chr * 32
+		k = 0.chr * 32
 
 		priv = @k.encode_privkey(priv, 'bin')
-		#msghash = @sp.encode(@sp.hash_to_int(msghash), 256, 32)
 
 		k = OpenSSL::HMAC.digest("SHA256", k, v + 0.chr + priv + msghash)
 		v = OpenSSL::HMAC.digest("SHA256", k, v)
@@ -57,7 +55,8 @@ class ECDSA
 		z = @sp.hash_to_int(msghash)
 		k = deterministic_generate_k(msghash, priv)
 		r, y = @e.fast_multiply(ECC::G, k)
-		s = @e.inv(k, ECC::N) * (z + r * @k.decode_privkey(priv)) % ECC::N # BIP62 low s value
+		s = @e.inv(k, ECC::N) * (z + r * @k.decode_privkey(priv)) % ECC::N
+		s = s * 2 < ECC::N ? s : ECC::N - s # BIP62 low s value
 
 		return 30 + (y % 2), r.to_s(16), s.to_s(16)
 	end
