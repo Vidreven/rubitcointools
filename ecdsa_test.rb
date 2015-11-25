@@ -44,13 +44,29 @@ class TestECDSA < Test::Unit::TestCase
 	def test_deterministic_generate_k
 		e = ECDSA.new
 		priv = 'E9873D79C6D87DC0FB6A5778633389F4453213303DA61F20BD67FC233AA33262'
-		assert_equal(32, e.deterministic_generate_k(Specials.new.random_string(16), priv).size)
+		msg1 = "76a914b8109afa1fa52d3a5fc9376a99d946ab0628eb0c88ac"
+		msg2 = "76a9147bdade678c0d440012a266f8367cb42ad6d62daa88ac"
+		msg3 = "76a914e31239e6c27baee56af5c112f123bac9d0df84f688ac"
+		#assert_equal(32, e.deterministic_generate_k(Specials.new.random_string(16), priv).size)
+		assert_equal(32, e.deterministic_generate_k(msg1, priv).size)
+		k1 = e.deterministic_generate_k(msg1, priv)
+		k2 = e.deterministic_generate_k(msg2, priv)
+		k3 = e.deterministic_generate_k(msg3, priv)
+		assert_not_equal(k1, k2)
+		assert_not_equal(k2, k3)
+		assert_not_equal(k1, k3)
 	end
 
 	def test_ecdsa_raw_sign
 		e = ECDSA.new
 		priv = 'E9873D79C6D87DC0FB6A5778633389F4453213303DA61F20BD67FC233AA33262'
-		assert_equal(3, e.ecdsa_raw_sign(Specials.new.random_string(16), priv).length)
+		msg = "9302bda273a887cb40c13e02a50b4071a31fd3aae3ae04021b0b843dd61ad18e"
+		#assert_equal(3, e.ecdsa_raw_sign(Specials.new.random_string(16), priv).length)
+		signature = e.ecdsa_raw_sign(msg, priv)
+		assert_equal(3, signature.length)
+		assert_equal(31, signature[0])
+		assert_equal(64, signature[1].length)
+		assert_equal(64, signature[2].length)
 	end
 
 	def test_ecdsa_raw_verify
