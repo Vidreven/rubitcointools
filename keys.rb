@@ -78,7 +78,7 @@ class Keys
 			x = @sp.decode(pub[1..32], 256)
 			beta = (x*x*x + ECC::A*x + ECC::B)
 			beta = @e.pow(beta, (ECC::P+1)/4, ECC::P)
-			y = ((beta + pub[0].to_i) % 2) ? (ECC::P - beta) : beta
+			y = ((beta + pub[0].to_i) % 2 == 1) ? (ECC::P - beta) : beta
 			return [x, y]
 		elsif format == 'hex'
 			return [@sp.decode(pub[2..65], 16), @sp.decode(pub[66..130], 16)]

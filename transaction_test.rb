@@ -2,17 +2,6 @@ require_relative 'transaction'
 require 'test/unit'
 
 class TestTransaction < Test::Unit::TestCase
-	
-	def test_json_is_base
-		t = Transaction.new
-		assert_equal(true, t.json_is_base('1a', 16))
-		assert_equal(true, t.json_is_base(5682, 10))
-		assert_equal(true, t.json_is_base(5682, 16))
-		assert_equal(true, t.json_is_base(nil, 16))
-		assert_equal(true, t.json_is_base('1MBngSqZbMydscpzSoehjP8kznMaHAzh9y', 58))
-		assert_equal(true, t.json_is_base(['1a', '2b', '3c'], 16))
-		assert_equal(true, t.json_is_base({name: '1a', surname: '2b', nickname: '3c'}, 16))
-	end
 
 	def test_deserialize
 		t = Transaction.new
@@ -34,12 +23,12 @@ class TestTransaction < Test::Unit::TestCase
 		assert_equal(version, [obj[:version]].pack('H*').reverse.unpack('H*')[0])
 		assert_equal(hash, [obj[:ins][0][:outpoint][:hash]].pack('H*').reverse.unpack('H*')[0])
 		assert_equal(index, [obj[:ins][0][:outpoint][:index]].pack('H*').reverse.unpack('H*')[0])
-		assert_equal(script, '8b' + obj[:ins][0][:script])
+		assert_equal(script, '8b' + obj[:ins][0][:scriptSig])
 		assert_equal(sequence, [obj[:ins][0][:sequence]].pack('H*').reverse.unpack('H*')[0])
 		assert_equal(value, [obj[:outs][0][:value]].pack('H*').reverse.unpack('H*')[0])
-		assert_equal(scr, '19' + obj[:outs][0][:script])
+		assert_equal(scr, '19' + obj[:outs][0][:scriptPubKey])
 		assert_equal(locktime, obj[:locktime])
-	end
+	 end
 
 	def test_serialize
 		t = Transaction.new
@@ -114,10 +103,10 @@ class TestTransaction < Test::Unit::TestCase
 		scr23 = '483045022100be35d2177a1507245528ae2a77cdb7b620ac98beeae6089cd301c2195b234e10'+
 			'02200112b06c221696d04fb4c04eddbd4833664af5cb80ef6208ec5383a607db1a190121025114bd' +
 			'74d6773bf24ce6d504de69821b051ab9eb9d7cd91a921a9413d09011bc'
-		#newtx = t.signature_form(t.deserialize(tx23), 0, scr23)
-		#assert_equal("", newtx[:ins][1][:script])
-		#newtx = t.signature_form(t.deserialize(tx23), 0, scr23, 2)
-		#assert_equal([], newtx[:outs])
+		# newtx = t.signature_form(t.deserialize(tx23), 0, scr23)
+		# assert_equal("", newtx[:ins][1][:script])
+		# newtx = t.signature_form(t.deserialize(tx23), 0, scr23, 2)
+		# assert_equal([], newtx[:outs])
 		# newtx = t.signature_form(t.deserialize(tx23), 1, scr23, 3)
 		# assert_equal("", newtx[:outs][0][:script])
 		newtx = t.signature_form(t.deserialize(tx23), 1, scr23, 0x81)
@@ -157,15 +146,16 @@ class TestTransaction < Test::Unit::TestCase
 
 	def test_ecdsa_tx_sign
 		t = Transaction.new
+		hashcode = 3
 		tx = '010000000175db462b20dd144dd143f5314270569c0a61191f1378c164ce4262e9bff1b07900000' +
-			'0008b4830450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c70' +
-			'3302203b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31014104bca' +
-			'69c59dc7a6d8ef4d3043bdcb626e9e29837b9beb143168938ae8165848bfc788d6ff4cdf1ef843e' +
-			'6a9ccda988b323d12a367dd758261dd27a63f18f56ce77ffffffff0133f50100000000001976a91' +
+			'0001976a914dd6cce9f255a8cc17bda8ba0373df8e861cb866e88acffffffff0133f50100000000001976a91' +
 			'4dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac00000000'
 		priv = 'E9873D79C6D87DC0FB6A5778633389F4453213303DA61F20BD67FC233AA33262'
-		signature = t.ecdsa_tx_sign(tx, priv, 3)
+		signature = t.ecdsa_tx_sign(tx, priv, hashcode)
 		assert_equal('30', signature[0..1])
+		sig_len = signature[2..3].to_i(16) * 2
+		assert_equal(signature[4..-3].length, sig_len)
+		assert_equal(hashcode.to_s.rjust(2, '0'), signature[-2..-1])
 	end
 
 	def test_ecdsa_tx_verify
@@ -183,7 +173,25 @@ class TestTransaction < Test::Unit::TestCase
 		assert_equal(true, t.ecdsa_tx_verify(tx, signature, x+y))
 	end
 
-	def test_ecdsa_tx_recover
+	# def test_ecdsa_tx_recover
+	# 	t = Transaction.new
+	# 	tx = '010000000175db462b20dd144dd143f5314270569c0a61191f1378c164ce4262e9bff1b07900000' +
+	# 		'0008b4830450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c70' +
+	# 		'3302203b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31014104bca' +
+	# 		'69c59dc7a6d8ef4d3043bdcb626e9e29837b9beb143168938ae8165848bfc788d6ff4cdf1ef843e' +
+	# 		'6a9ccda988b323d12a367dd758261dd27a63f18f56ce77ffffffff0133f50100000000001976a91' +
+	# 		'4dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac00000000'
+	# 	priv = '1111111111111111111111111111111111111111111111111111111111111111'
+	# 	signature = t.ecdsa_tx_sign(tx, priv)
+	# 	x = '044f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871a'
+	# 	y = 'a385b6b1b8ead809ca67454d9683fcf2ba03456d6fe2c4abe2b07f0fbdbb2f1c1'
+
+	# 	assert_not_equal(false, t.ecdsa_tx_recover(tx, signature))
+	# 	assert_equal(130, t.ecdsa_tx_recover(tx, signature).length)
+	# 	assert_equal(x+y, t.ecdsa_tx_recover(tx, signature))
+	# end
+
+	def test_sign
 		t = Transaction.new
 		tx = '010000000175db462b20dd144dd143f5314270569c0a61191f1378c164ce4262e9bff1b07900000' +
 			'0008b4830450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c70' +
@@ -192,12 +200,39 @@ class TestTransaction < Test::Unit::TestCase
 			'6a9ccda988b323d12a367dd758261dd27a63f18f56ce77ffffffff0133f50100000000001976a91' +
 			'4dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac00000000'
 		priv = '1111111111111111111111111111111111111111111111111111111111111111'
-		signature = t.ecdsa_tx_sign(tx, priv)
-		x = '044f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871a'
-		y = 'a385b6b1b8ead809ca67454d9683fcf2ba03456d6fe2c4abe2b07f0fbdbb2f1c1'
+		i = 0
+		tx = t.deserialize(tx)
 
-		assert_not_equal(false, t.ecdsa_tx_recover(tx, signature))
-		assert_equal(130, t.ecdsa_tx_recover(tx, signature).length)
-		assert_equal(x+y, t.ecdsa_tx_recover(tx, signature))
+		t.sign(tx, i, priv)
 	end
+
+	# def test_sign_all
+	# 	t = Transaction.new
+	# 	# tx = '01000000062e730fecd38a76a3dd93c342595cddbc54b064c453a5d7986789dcfb178a4c37170000006a47304402206490ed13d441a6745a3d519245e6b49fcffa35260f12a71fc99b5ad50f20026302205cfc4b218c070e80a93179b9681590beb6def2cec4418ca7e630'+
+	# 	# '1f7f229c7708012102755ce609041e8e7681332a3df3d9e35431dbe3e45a77b2ddb9d08313421db33efeffffffafbfd849ddf5d7aafd47bc09d7d684dfd8955ea250faf35b5f86a8cf84dababa1d0000006b483045022100a858f692662a7b0c85131e5551d35eed0ba85d'+
+	# 	# 'ea5024a0e6bc3508dac5bcb7f30220738b15dfa2e200c6ae8922d29dd2bbac7142f9e19fa5986a08f5f8166599a29c012102755ce609041e8e7681332a3df3d9e35431dbe3e45a77b2ddb9d08313421db33efefffffff092941c3c26ae4425d3fc0e59352554a8f74aad98'+
+	# 	# 'c53ceb6fd13edece3baf5c000000006a4730440220469ed8338caadab18a3fb390d9ea68241516e155239d0b446f8864a48a6f67ac022053d1b3319eb5ba3b92c70fd147ab0bcfd74a333112b09fd7dd526262dbeadd9f012102e35c1c227d69f5fc961417ee47fec90670'+
+	# 	# 'a84f06630a937c0357601e45f449bbfeffffff91cca085fe781d0de923043e37f8cbf29a8d5f866c38b7f7604766e949e5c656050000006b483045022100a75083d38d7f9961ce53bdb071c7e704f31b21928d8f5b32ee80855c860485d80220498ba0a9233e723fd5bafa'+
+	# 	# '4c28833540e6b366ae9583ed773c4bc5b75405a02a0121034816381b34887df06ff4092ca5cf2499c3e2c3a2f9730d29eb185e951241c28efeffffffb0ca2e5bccfac83cbaa0f6046cb1635b2cbe352b24c27f3821cea3db5bbb4fcf010000006a47304402206aba97783d'+
+	# 	# '1cbfc835daffec0fb56be9bbe1b83e14e5e485d414d39d66e6734502201f911afcea1e504a9f644736233caefb512edefa3c772ed3f7bf66d3b32840b4012103cf92b6960b30611119ad1b914d9e042a92b5cbbd859dbbfefb27ecf9268699e5feffffff5c991bfc0e156c'+
+	# 	# '0ad9bb98839c392bb183b1cb086a04728c83d45baa967d0752010000006a47304402206c85e5dd2d0f6db89b82b6802a7782830f527fab8d63b86d104a69d0dcef64640220158195f5fdb61e14054f43bb958d28a19fcd01dc64a4b435e5e71b017a465064012103efc478'+
+	# 	# 'ed39e3aa5e78fe18ad979cf43c72d47865353fe12f3334fa902b54b8aefeffffff026cbf1000000000001976a914a9d72f0fcc8e9e36ddea69d48fcd48a884395b3488ac005ed0b2000000001976a914811c7c703ec3025b29a87be0c60c8192b9a37c9d88ac8ed30500'
+	# 	tx = '01000000062e730fecd38a76a3dd93c342595cddbc54b064c453a5d7986789dcfb178a4c37170000001976a914811c7c703ec3025b29a87be0c60c8192b9a37c9d88acfeffffffafbfd849ddf5d7aafd47bc09d7d684dfd8955ea250faf35b5f86a8cf84dababa1d00000019'+
+	# 	'76a914811c7c703ec3025b29a87be0c60c8192b9a37c9d88acfefffffff092941c3c26ae4425d3fc0e59352554a8f74aad98'+
+	# 	'c53ceb6fd13edece3baf5c000000001976a914811c7c703ec3025b29a87be0c60c8192b9a37c9d88ac'+
+	# 	'feffffff91cca085fe781d0de923043e37f8cbf29a8d5f866c38b7f7604766e949e5c6560500000019'+
+	# 	'76a914811c7c703ec3025b29a87be0c60c8192b9a37c9d88acfeffffffb0ca2e5bccfac83cbaa0f6046cb1635b2cbe352b24c27f3821cea3db5bbb4fcf0100000019'+
+	# 	'76a914811c7c703ec3025b29a87be0c60c8192b9a37c9d88acfeffffff5c991bfc0e156c'+
+	# 	'0ad9bb98839c392bb183b1cb086a04728c83d45baa967d07520100000019'+
+	# 	'76a914811c7c703ec3025b29a87be0c60c8192b9a37c9d88acfeffffff026cbf1000000000001976a914a9d72f0fcc8e9e36ddea69d48fcd48a884395b3488ac005ed0b2000000001976a914811c7c703ec3025b29a87be0c60c8192b9a37c9d88ac8ed30500'
+	# 	priv = '1111111111111111111111111111111111111111111111111111111111111111'
+
+	# 	tx3 = '010000000175db462b20dd144dd143f5314270569c0a61191f1378c164ce4262e9bff1b07900000' +
+	# 		'0008b4830450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c70' +
+	# 		'3302203b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31014104bca' +
+	# 		'69c59dc7a6d8ef4d3043bdcb626e9e29837b9beb143168938ae8165848bfc788d6ff4cdf1ef843e' +
+	# 		'6a9ccda988b323d12a367dd758261dd27a63f18f56ce77ffffffff0133f50100000000001976a91' +
+	# 		'4dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac00000000'
+	# 	p t.sign_all(tx3, priv)
+	# end
 end

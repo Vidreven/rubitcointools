@@ -1,6 +1,7 @@
 require_relative 'specials'
 require_relative 'hashes'
 require_relative 'ecdsa'
+require_relative 'scripts'
 
 class Transaction
 
@@ -9,27 +10,7 @@ class Transaction
 		@h = Hashes.new
 		@dsa = ECDSA.new
 		@k = Keys.new
-	end
-
-	# Decides if object is a base string
-	def json_is_base(obj, base)
-		code_string = @sp.get_code_string(base)
-
-		if obj.respond_to? :each_char
-			obj.each_char do |c|
-				return false unless code_string.include? c
-			end
-		elsif obj.respond_to? :each
-			obj.each do |o|
-				return false unless json_is_base(o, base)
-			end
-		elsif obj.respond_to? :each_key
-			obj.each_key do |o|
-				return false unless json_is_base(obj[o], base)
-			end
-		end
-
-		return true
+		@sc = Scripts.new
 	end
 
 	def deserialize(tx)
@@ -43,7 +24,7 @@ class Transaction
 					hash: @sp.change_endianness(read_and_modify(32, tx)),
 					index: @sp.change_endianness(read_and_modify(4, tx))
 				},
-				script: read_var_string(tx),
+				scriptSig: read_var_string(tx),
 				sequence: @sp.change_endianness(read_and_modify(4, tx))
 			}
 		}
@@ -52,7 +33,7 @@ class Transaction
 		outs.times{
 			obj[:outs] << {
 				value: @sp.change_endianness(read_and_modify(8, tx)),
-				script: read_var_string(tx)
+				scriptPubKey: read_var_string(tx)
 			}
 		}
 		obj[:locktime] = @sp.change_endianness(read_and_modify(4, tx))
@@ -68,9 +49,9 @@ class Transaction
 		txobj[:ins].each do |input|
 			raw += @sp.change_endianness(input[:outpoint][:hash])
 			raw += @sp.change_endianness(input[:outpoint][:index])
-			scriptlen = input[:script].length / 2 # convert charlen to bytelen
+			scriptlen = input[:scriptSig].length / 2 # convert charlen to bytelen
 			scriptlen = scriptlen.to_s(16)
-			raw += scriptlen + input[:script]
+			raw += scriptlen + input[:scriptSig]
 			raw += @sp.change_endianness(input[:sequence])
 		end
 
@@ -78,9 +59,9 @@ class Transaction
 
 		txobj[:outs].each do |output|
 			raw += @sp.change_endianness(output[:value])
-			scriptlen = output[:script].length / 2
+			scriptlen = output[:scriptPubKey].length / 2
 			scriptlen = scriptlen.to_s(16)
-			raw += scriptlen + output[:script]
+			raw += scriptlen + output[:scriptPubKey]
 		end
 
 		raw += @sp.change_endianness(txobj[:locktime])
@@ -95,20 +76,23 @@ class Transaction
 	SIGHASH_SINGLE = 3
 	SIGHASH_ANYONECANPAY = 0x81
 
-	def signature_form(tx, i, script, hashcode=SIGHASH_ALL)
+	
+	# Prepares the transaction for hashing. Each input has to be handled separately.
+	# For hasing each scriptSig in has to be first filled with scriptPubKey.
+	def signature_form(tx, i, scriptPubKey, hashcode=SIGHASH_ALL)
 		i, hashcode = i.to_i, hashcode.to_i
 
 		if tx.respond_to? :each_char
-			return serialize(signature_form(deserialize(tx), i, script, hashcode))
+			return serialize(signature_form(deserialize(tx), i, scriptPubKey, hashcode))
 		end
 
 		newtx = deepcopy(tx)
 
 		newtx[:ins].each do |input|
-			input[:script] = ""
+			input[:scriptSig] = ""
 		end
 
-		newtx[:ins][i][:script] = script
+		newtx[:ins][i][:scriptSig] = scriptPubKey
 
 		if hashcode == SIGHASH_NONE
 			newtx[:outs] = []
@@ -116,7 +100,7 @@ class Transaction
 			newtx[:outs].each_index do |index|
 				next if index == i
 				newtx[:outs][index][:value] = 2**64 - 1
-				newtx[:outs][index][:script] = ""
+				newtx[:outs][index][:scriptPubKey] = ""
 				#newtx[:ins][index][:sequence] = '00000000'
 			end
 		elsif hashcode == SIGHASH_ANYONECANPAY
@@ -126,20 +110,30 @@ class Transaction
 		return newtx
 	end
 
-	def bin_txhash(tx, hashcode='None')
-		if hashcode == 'None'
-			result = @h.bin_dbl_sha256(tx)
-		else
-			result = @h.bin_dbl_sha256(tx + hashcode.to_s.rjust(8, '0'))
-		end
+	# def bin_txhash(tx, hashcode='None')
+	# 	if hashcode == 'None'
+	# 		result = @h.bin_dbl_sha256(tx)
+	# 	else
+	# 		result = @h.bin_dbl_sha256(tx + hashcode.to_s.rjust(8, '0'))
+	# 	end
+
+	# 	return @sp.change_endianness(result)
+	# end
+
+	# Accepts transaction in serialized format and appends hashcode before hashing.
+	def bin_txhash(tx, hashcode=SIGHASH_ALL)
+		hashcode = hashcode.to_s.rjust(8, '0')
+		hashcode = @sp.change_endianness(hashcode)
+		result = @h.bin_dbl_sha256(tx + hashcode)
 
 		return @sp.change_endianness(result)
 	end
 
-	def txhash(tx, hashcode='None')
+	def txhash(tx, hashcode=nil)
 		return @sp.changebase(bin_txhash(tx, hashcode), 256, 16)
 	end
 
+	# Signs the transaction, appends the hashcode and encodes it into DER format.
 	def ecdsa_tx_sign(tx, priv, hashcode=SIGHASH_ALL)
 		rawsig = @dsa.ecdsa_raw_sign(bin_txhash(tx, hashcode), priv)
 		return @dsa.encode_sig(*rawsig) + @sp.encode(hashcode, 16, 2)
@@ -157,6 +151,40 @@ class Transaction
 		left, right = @dsa.ecdsa_raw_recover(z, [v, r, s])
 
 		return @k.encode_pubkey([left, right], 'hex')
+	end
+
+	# Signing and verifying
+
+	# Takes a deserialized transaction as input, generates the public key and address,
+	# signs the input and creates and inserts the proper scriptSig.
+	def sign(tx, i, priv, hashcode=SIGHASH_ALL)
+		i = i.to_i
+
+		pub = @k.privtopub(priv)
+		address = @k.pubtoaddr(pub)
+		txobj = deepcopy(tx)
+
+		signing_tx = signature_form(tx, i, @sc.mk_pubkey_script(address), hashcode)
+		signing_tx = serialize(signing_tx) # Samo ako prethodno nije serijalizirana
+		sig = ecdsa_tx_sign(signing_tx, priv, hashcode)
+
+		txobj[:ins][i][:scriptSig] = (sig.length / 2).to_s(16) + sig + (pub.length / 2).to_s(16) + pub
+
+		return serialize(txobj)
+	end
+
+	# Takes a serialized transaction as input with scriptPubKey insted of scriptSig
+	# and signs every transaction input.
+	def sign_all(tx, priv)
+
+		tx = deserialize(tx)
+
+		tx[:ins].each_index do |i|
+			tx = deserialize(sign(tx, i, priv))
+			#break
+		end
+
+		return tx
 	end
 
 	private

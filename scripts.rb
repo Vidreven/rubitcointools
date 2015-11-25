@@ -24,10 +24,6 @@ class Scripts
 	end
 
 	def script_to_address(script, vbyte=0)
-		# if /^[0-9a-fA-F]*$/ =~ script
-		# 	script = @sp.changebase(script, 16, 256)
-		# end
-
 		if (script[0..5] == '76a914' && script[-4..-1] == '88ac' && script.length == 50)
 			hextobin = @sp.changebase(script[6..-5], 16, 256)
 			return @sp.bin_to_b58check(hextobin, vbyte)
@@ -40,6 +36,7 @@ class Scripts
 			end
 
 			hextobin = @sp.changebase(script[4..-3], 16, 256)
+			# BIP0016 scripthash addresses
 			return @sp.bin_to_b58check(hextobin, scripthash_byte)
 		end
 	end
