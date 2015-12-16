@@ -144,14 +144,14 @@ class Transaction
 	end
 
 	# recovers pubkey
-	def ecdsa_tx_recover(tx, sig, hashcode=SIGHASH_ALL)
-		z = bin_txhash(tx, hashcode)
-		v, r, s = @dsa.decode_sig(sig)
+	# def ecdsa_tx_recover(tx, sig, hashcode=SIGHASH_ALL)
+	# 	z = bin_txhash(tx, hashcode)
+	# 	v, r, s = @dsa.decode_sig(sig)
 
-		left, right = @dsa.ecdsa_raw_recover(z, [v, r, s])
+	# 	left, right = @dsa.ecdsa_raw_recover(z, [v, r, s])
 
-		return @k.encode_pubkey([left, right], 'hex')
-	end
+	# 	return @k.encode_pubkey([left, right], 'hex')
+	# end
 
 	# Signing and verifying
 
@@ -170,7 +170,8 @@ class Transaction
 
 		txobj[:ins][i][:scriptSig] = (sig.length / 2).to_s(16) + sig + (pub.length / 2).to_s(16) + pub
 
-		return serialize(txobj)
+		#return serialize(txobj)
+		return txobj
 	end
 
 	# Takes a serialized transaction as input with scriptPubKey insted of scriptSig
@@ -180,8 +181,9 @@ class Transaction
 		tx = deserialize(tx)
 
 		tx[:ins].each_index do |i|
-			tx = deserialize(sign(tx, i, priv))
-			#break
+			#tx = deserialize(sign(tx, i, priv))
+			tx = sign(tx, i, priv)
+			break
 		end
 
 		return tx

@@ -74,24 +74,26 @@ class ECDSA
 		return r.to_i(16) == x
 	end
 
-	def ecdsa_raw_recover(msghash, vrs)
-		v, r, s = vrs
+	# def ecdsa_raw_recover(msghash, vrs)
+	# 	v, r, s = vrs
 
-		x = r.to_i
-		xcubedaxb = (x*x*x + ECC::A*x + ECC::B)
-		beta = @e.pow(xcubedaxb, (ECC::P+1)/4, ECC::P)
-		y = beta % 2 == 1 ? beta : (ECC::P - beta)
+	# 	raise 'v must be in range 27-34' unless (27 < v.to_i) && (v.to_i<= 34)
 
-		# If xcubedaxb is not a quadratic residue, then r cannot be the x coord
-    	# for a point on the curve, and so the sig is invalid
-		return false if (xcubedaxb - y*y) % ECC::P != 0
+	# 	x = r.to_i(16)
+	# 	xcubedaxb = (x*x*x + ECC::A*x + ECC::B)
+	# 	beta = @e.pow(xcubedaxb, (ECC::P+1)/4, ECC::P)
+	# 	y = beta % 2 == 1 ? beta : (ECC::P - beta)
 
-		z = @sp.hash_to_int(msghash)
-		gz = @e.fast_multiply(ECC::G, (ECC::N - z) % ECC::N)
-		xy = @e.fast_multiply([x, y], s.to_i)
-		qr = @e.fast_add(gz, xy)
-		p, q = @e.fast_multiply(qr, @e.inv(r.to_i, ECC::N))
+	# 	# If xcubedaxb is not a quadratic residue, then r cannot be the x coord
+ #    	# for a point on the curve, and so the sig is invalid
+	# 	return false if (xcubedaxb - y*y) % ECC::P != 0
 
-		return [p, q]
-	end
+	# 	z = @sp.hash_to_int(msghash)
+	# 	gz = @e.fast_multiply(ECC::G, (ECC::N - z) % ECC::N)
+	# 	xy = @e.fast_multiply([x, y], s.to_i(16))
+	# 	qr = @e.fast_add(gz, xy)
+	# 	p, q = @e.fast_multiply(qr, @e.inv(x, ECC::N))
+
+	# 	return [p, q]
+	# end
 end
