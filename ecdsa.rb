@@ -33,6 +33,20 @@ class ECDSA
 		return v, r, s
 	end
 
+	def bip66?(sig)
+		return false if sig.length > 142 || sig.length < 18
+		return false if sig[0..1] != '30'
+		return false if sig[2..3].to_i(16) * 2 != sig.length - 4
+		return false if 8 + sig[6..7].to_i(16) * 2 >= sig.length - 2
+		return false if sig[6..7].to_i(16) == 0
+		return false if sig[8..9].to_i(16) & 0x80 == 0x80
+		return false if sig[76..77].to_i(16) == 0
+		return false if sig[78..79].to_i(16) & 0x80 == 0x80
+		return false if 8 + sig[6..7].to_i(16) * 2 + sig[76..77].to_i(16) * 2 != sig.length - 4
+
+		return true
+	end
+
 	# https://tools.ietf.org/html/rfc6979#section-3.2
 	def deterministic_generate_k(msghash, priv)
 		v = 1.chr * 32

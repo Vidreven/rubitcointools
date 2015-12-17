@@ -29,7 +29,7 @@ class TestECDSA < Test::Unit::TestCase
 		# Negative numbers are not allowed for R.
 		assert_not_equal(0x80, sig[8..9].to_i(16) & 0x80)
 		# Zero-length integers are not allowed for S.
-		assert_not_equal(0, sig[74..75].to_i(16))
+		assert_not_equal(0, sig[76..77].to_i(16))
 		# Negative numbers are not allowed for S.
 		assert_not_equal(0x80, sig[78..79].to_i(16) & 0x80)
 	end
@@ -39,6 +39,28 @@ class TestECDSA < Test::Unit::TestCase
 		r = '008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c7033'
 		s = '3b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31'
 		assert_equal(['30', r, s], e.decode_sig(e.encode_sig('30', r, s)))
+	end
+
+	def test_bip66
+		e = ECDSA.new
+		sig = ['1' * 8, '2' * 143, '20' + '1' * 140, '3016' + '2' * 138,
+			'30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c7033',
+			'30450200' + '2' * 134, '3045022281' + '2' * 132,
+			'30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c703302003b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31',
+			'30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c70330220811c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31',
+			'30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c703302103b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31',
+			'30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c703302203b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31']
+		assert_equal(false, e.bip66?(sig[0]))
+		assert_equal(false, e.bip66?(sig[1]))
+		assert_equal(false, e.bip66?(sig[2]))
+		assert_equal(false, e.bip66?(sig[3]))
+		assert_equal(false, e.bip66?(sig[4]))
+		assert_equal(false, e.bip66?(sig[5]))
+		assert_equal(false, e.bip66?(sig[6]))
+		assert_equal(false, e.bip66?(sig[7]))
+		assert_equal(false, e.bip66?(sig[8]))
+		assert_equal(false, e.bip66?(sig[9]))
+		assert_equal(true, e.bip66?(sig[10]))
 	end
 
 	def test_deterministic_generate_k
