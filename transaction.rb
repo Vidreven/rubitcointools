@@ -183,7 +183,6 @@ class Transaction
 		tx[:ins].each_index do |i|
 			#tx = deserialize(sign(tx, i, priv))
 			tx = sign(tx, i, priv)
-			break
 		end
 
 		return tx
