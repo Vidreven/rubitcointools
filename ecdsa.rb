@@ -14,8 +14,10 @@ class ECDSA
 	# 0x30 + 1 byte length descriptor + 0x02 + 1 byte R length descriptor + R + 0x02 + 1 byte S length descriptor + S
 	def encode_sig(v = '30', r, s)
 		v, r, s = v.to_s, r.to_s, s.to_s
-		raise "r cannot  be negative" if (r[0..1] == '00') && (r[2..3] < '80')
-		raise "s cannot  be negative" if (s[0..1] == '00') && (s[2..3] < '80')
+		#raise "r cannot  be negative" if (r[0..1] == '00') && (r[2..3] < '80')
+		r = '00' + r if (r[0..1] == '00') && (r[2..3].to_i(16) < 128)
+		#raise "s cannot  be negative" if (s[0..1] == '00') && (s[2..3] < '80')
+		s = '00' + s if (s[0..1] == '00') && (s[2..3].to_i(16) < 128)
 		total_length = (4 + r.length / 2 + s.length / 2).to_s(16) # Length of the signature does not include the length field itself
 		r_length = (r.length / 2).to_s(16)
 		s_length = (s.length / 2).to_s(16)
@@ -34,14 +36,34 @@ class ECDSA
 	end
 
 	def bip66?(sig)
+		# Minimum and maximum size constraints.
 		return false if sig.length > 142 || sig.length < 18
+		# A signature is of type 0x30 (compound).
 		return false if sig[0..1] != '30'
+		# Make sure the length covers the entire signature.
 		return false if sig[2..3].to_i(16) * 2 != sig.length - 4
+		# Make sure the length of the S element is still inside the signature.
 		return false if 8 + sig[6..7].to_i(16) * 2 >= sig.length - 2
+		# Check whether the R element is an integer.
+		return false if sig[4..5] != '02'
+		# Zero-length integers are not allowed for R.
 		return false if sig[6..7].to_i(16) == 0
+		# Negative numbers are not allowed for R.
 		return false if sig[8..9].to_i(16) & 0x80 == 0x80
+		# Null bytes at the start of R are not allowed, unless R would
+		# otherwise be interpreted as a negative number.
+		return false if (sig[6..7].to_i(16) > 0) && (sig[8..9].to_i(16) == 0) && (sig[10..11].to_i(16) & 0x80 != 0x80)
+		# Check whether the S element is an integer.
+		return false if sig[74..75] != '02'
+		# Zero-length integers are not allowed for S.
 		return false if sig[76..77].to_i(16) == 0
+		# Negative numbers are not allowed for S.
 		return false if sig[78..79].to_i(16) & 0x80 == 0x80
+		# Null bytes at the start of S are not allowed, unless S would
+		# otherwise be interpreted as a negative number.
+		return false if (sig[76..77].to_i(16) > 0 && sig[78..79].to_i(16) == 0 && sig[80..81].to_i(16) & 0x80 != 0x80)
+		# Verify that the length of the signature matches the sum of the length
+		# of the elements.
 		return false if 8 + sig[6..7].to_i(16) * 2 + sig[76..77].to_i(16) * 2 != sig.length - 4
 
 		return true

@@ -49,7 +49,11 @@ class TestECDSA < Test::Unit::TestCase
 			'30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c703302003b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31',
 			'30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c70330220811c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31',
 			'30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c703302103b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31',
-			'30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c703302203b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31']
+			'30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c703302203b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31',
+			'304503' + '1' * 136,
+			'30450221007f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c703302203b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31',
+			'30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c703304203b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31',
+			'30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c70330221300b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31']
 		assert_equal(false, e.bip66?(sig[0]))
 		assert_equal(false, e.bip66?(sig[1]))
 		assert_equal(false, e.bip66?(sig[2]))
@@ -60,6 +64,10 @@ class TestECDSA < Test::Unit::TestCase
 		assert_equal(false, e.bip66?(sig[7]))
 		assert_equal(false, e.bip66?(sig[8]))
 		assert_equal(false, e.bip66?(sig[9]))
+		assert_equal(false, e.bip66?(sig[11]))
+		assert_equal(false, e.bip66?(sig[12]))
+		assert_equal(false, e.bip66?(sig[13]))
+		assert_equal(false, e.bip66?(sig[14]))
 		assert_equal(true, e.bip66?(sig[10]))
 	end
 
