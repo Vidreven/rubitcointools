@@ -13,7 +13,7 @@ class TestECDSA < Test::Unit::TestCase
 		sig = e.encode_sig('30', r, s)
 
 		# Minimum and maximum size constraints.
-		assert_equal(false, sig.length > 142)
+		assert_equal(false, sig.length > 144)
 		assert_equal(false, sig.length < 18)
 		# A signature is of type 0x30 (compound).
 		assert_equal('30', sig[0..1])
@@ -53,7 +53,9 @@ class TestECDSA < Test::Unit::TestCase
 			'304503' + '1' * 136,
 			'30450221007f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c703302203b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31',
 			'30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c703304203b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31',
-			'30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c70330221300b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31']
+			'30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c70330221300b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31',
+			'30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c703302203b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31',
+			'30460221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c70330221008b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31']
 		assert_equal(false, e.bip66?(sig[0]))
 		assert_equal(false, e.bip66?(sig[1]))
 		assert_equal(false, e.bip66?(sig[2]))
@@ -69,6 +71,8 @@ class TestECDSA < Test::Unit::TestCase
 		assert_equal(false, e.bip66?(sig[13]))
 		assert_equal(false, e.bip66?(sig[14]))
 		assert_equal(true, e.bip66?(sig[10]))
+		assert_equal(true, e.bip66?(sig[15]))
+		assert_equal(true, e.bip66?(sig[16]))
 	end
 
 	def test_deterministic_generate_k

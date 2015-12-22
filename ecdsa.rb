@@ -37,7 +37,7 @@ class ECDSA
 
 	def bip66?(sig)
 		# Minimum and maximum size constraints.
-		return false if sig.length > 142 || sig.length < 18
+		return false if sig.length > 144 || sig.length < 18
 		# A signature is of type 0x30 (compound).
 		return false if sig[0..1] != '30'
 		# Make sure the length covers the entire signature.
@@ -53,18 +53,24 @@ class ECDSA
 		# Null bytes at the start of R are not allowed, unless R would
 		# otherwise be interpreted as a negative number.
 		return false if (sig[6..7].to_i(16) > 0) && (sig[8..9].to_i(16) == 0) && (sig[10..11].to_i(16) & 0x80 != 0x80)
+		lenR = sig[6..7].to_i(16) * 2
 		# Check whether the S element is an integer.
-		return false if sig[74..75] != '02'
+		#return false if sig[74..75] != '02'
+		return false if sig[(lenR+8)..(lenR+9)] != '02'
 		# Zero-length integers are not allowed for S.
-		return false if sig[76..77].to_i(16) == 0
+		#return false if sig[76..77].to_i(16) == 0
+		return false if sig[(lenR+10)..(lenR+11)].to_i(16) == 0
 		# Negative numbers are not allowed for S.
-		return false if sig[78..79].to_i(16) & 0x80 == 0x80
+		#return false if sig[78..79].to_i(16) & 0x80 == 0x80
+		return false if sig[(lenR+12)..(lenR+13)].to_i(16) & 0x80 == 0x80
 		# Null bytes at the start of S are not allowed, unless S would
 		# otherwise be interpreted as a negative number.
-		return false if (sig[76..77].to_i(16) > 0 && sig[78..79].to_i(16) == 0 && sig[80..81].to_i(16) & 0x80 != 0x80)
+		#return false if (sig[76..77].to_i(16) > 0 && sig[78..79].to_i(16) == 0 && sig[80..81].to_i(16) & 0x80 != 0x80)
+		return false if (sig[(lenR+10)..(lenR+11)].to_i(16) > 0 && sig[(lenR+12)..(lenR+13)].to_i(16) == 0 && sig[(lenR+14)..(lenR+15)].to_i(16) & 0x80 != 0x80)
 		# Verify that the length of the signature matches the sum of the length
 		# of the elements.
-		return false if 8 + sig[6..7].to_i(16) * 2 + sig[76..77].to_i(16) * 2 != sig.length - 4
+		#return false if 8 + sig[6..7].to_i(16) * 2 + sig[76..77].to_i(16) * 2 != sig.length - 4
+		return false if 8 + sig[6..7].to_i(16) * 2 + sig[(lenR+10)..(lenR+11)].to_i(16) * 2 != sig.length - 4
 
 		return true
 	end
