@@ -188,6 +188,11 @@ class Transaction
 		return tx
 	end
 
+	def multisign(tx, i, script, priv, hashcode=SIGHASH_ALL)
+		modtx = signature_form(tx, i, script, hashcode)
+		return ecdsa_tx_sign(modtx, priv, hashcode)
+	end
+
 	private
 
 	# accepts length in bytes

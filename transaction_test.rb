@@ -156,6 +156,7 @@ class TestTransaction < Test::Unit::TestCase
 		sig_len = signature[2..3].to_i(16) * 2
 		assert_equal(signature[4..-3].length, sig_len)
 		assert_equal(hashcode.to_s.rjust(2, '0'), signature[-2..-1])
+		assert_equal(true, ECDSA.new.bip66?(signature[0..-3]))
 	end
 
 	def test_ecdsa_tx_verify
@@ -200,6 +201,9 @@ class TestTransaction < Test::Unit::TestCase
 		i = 0
 		tx = t.deserialize(tx)
 		assert_equal(t.sign(tx, i, priv), t.sign(tx, i, priv))
+		tr = t.sign(tx, i, priv)
+		sig = tr[:ins][0][:scriptSig][2..141]
+		assert_equal(true, ECDSA.new.bip66?(sig))
 	end
 
 	def test_sign_all
@@ -229,8 +233,33 @@ class TestTransaction < Test::Unit::TestCase
 			'4dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac00000000'
 		tx2 = t.deserialize(tx2)
 		assert_equal(t.sign_all(tx3, priv), t.sign(tx2, 0, priv))
-		#tx = t.sign_all(tx, priv)
-		#p t.serialize(tx)
-		#p tx
+		tx = t.sign_all(tx, priv)
+		sig0 = tx[:ins][0][:scriptSig][2..141]
+		assert_equal(true, ECDSA.new.bip66?(sig0))
+		sig1 = tx[:ins][1][:scriptSig][2..143]
+		assert_equal(true, ECDSA.new.bip66?(sig1))
+		sig2 = tx[:ins][2][:scriptSig][2..143]
+		assert_equal(true, ECDSA.new.bip66?(sig2))
+		sig3 = tx[:ins][3][:scriptSig][2..141]
+		assert_equal(true, ECDSA.new.bip66?(sig3))
+		sig4 = tx[:ins][4][:scriptSig][2..141]
+		assert_equal(true, ECDSA.new.bip66?(sig4))
+		sig5 = tx[:ins][5][:scriptSig][2..143]
+		assert_equal(true, ECDSA.new.bip66?(sig5))
+	end
+
+	def test_multisign
+		t = Transaction.new
+		tx = '010000000175db462b20dd144dd143f5314270569c0a61191f1378c164ce4262e9bff1b07900000' +
+			'0008b4830450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c70' +
+			'3302203b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31014104bca' +
+			'69c59dc7a6d8ef4d3043bdcb626e9e29837b9beb143168938ae8165848bfc788d6ff4cdf1ef843e' +
+			'6a9ccda988b323d12a367dd758261dd27a63f18f56ce77ffffffff0133f50100000000001976a91' +
+			'4dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac00000000'
+		i = 0
+		priv = '1111111111111111111111111111111111111111111111111111111111111111'
+		script = "304402204e63d034c6074f17e9c5f8766bc7b5468a0dce5b69578bd08554e8f21434c58e0220763c6966f47c39068c8dcd3f3dbd8e2a4ea13ac9e9c899ca1fbc00e2558cbb8b01"
+		sig = t.multisign(tx, i, script, priv)
+		#assert_equal(true, ECDSA.new.bip66?(sig))
 	end
 end
