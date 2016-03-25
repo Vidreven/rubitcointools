@@ -67,4 +67,18 @@ class TestECC < Test::Unit::TestCase
 		res = e.pow(base, (exp+1)/4, exp)
 		assert_equal(Bignum, res.class)
 	end
+
+	def test_legendre
+		e = ECC.new
+		p = 7
+		a = 4
+		b = 3
+		c = 7
+		res = e.legendre(a, p)
+		assert_equal(1, res)
+		res = e.legendre(b, p)
+		assert_equal(-1, res)
+		res = e.legendre(c, p)
+		assert_equal(0, res)
+	end
 end

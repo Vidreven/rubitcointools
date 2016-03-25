@@ -116,4 +116,15 @@ class ECC
 	def pow(base, exp, mod)
 		return base.to_bn.mod_exp(exp, mod).to_i
 	end
+
+	# Legendre symbol determines if a is quadratic residue mod p
+	# a | p == 1 if a is quadratic residue mod p
+	# a | p == 0 if a divides p
+	# a | p == -1 if a is quadratic non-residue mod p
+	def legendre(a, p)
+		exp = (p - 1)/2
+		res = pow(a, exp, p)
+		res = res - p if res > 1
+		return res
+	end
 end

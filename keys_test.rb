@@ -57,7 +57,7 @@ class TestKeys < Test::Unit::TestCase
 		assert_equal(0, k.decode_privkey('0' * 64))
 		assert_equal(0, k.decode_privkey('0' * 64 + '01'))
 		assert_equal(32, k.decode_privkey('5HwoXVkHoRM8sL2KmNRS217n1g8mPPBomrY7yehCuXC1115WWsh').size)
-		assert_equal(33, k.decode_privkey('KwntMbt59tTsj8xqpqYqRRWufyjGunvhSyeMo3NTYpFYzZbXJ5Hp').size)
+		assert_equal(32, k.decode_privkey('KwntMbt59tTsj8xqpqYqRRWufyjGunvhSyeMo3NTYpFYzZbXJ5Hp').size)
 	end
 
 	def test_encode_privkey

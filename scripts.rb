@@ -6,7 +6,7 @@ class Scripts
 		@sp = Specials.new
 	end
 
-	# OP_DUP OP_HASH160 hex len addr OP_EQUALVERIFY OP_CHECKSIG
+	# OP_DUP OP_HASH160 hex_len_PKH PKH OP_EQUALVERIFY OP_CHECKSIG
 	def mk_pubkey_script(addr)
 		return '76a914' + @sp.b58check_to_hex(addr) + '88ac' #addr part needs to be 40 char in length
 	end

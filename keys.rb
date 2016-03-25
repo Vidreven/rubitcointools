@@ -77,8 +77,12 @@ class Keys
 		elsif format == 'bin_compressed'
 			x = @sp.decode(pub[1..32], 256)
 			beta = (x*x*x + ECC::A*x + ECC::B)
-			beta = @e.pow(beta, (ECC::P+1)/4, ECC::P)
-			y = ((beta + pub[0].to_i) % 2 == 1) ? (ECC::P - beta) : beta
+			if @e.legendre(beta, ECC::P)
+				beta = @e.pow(beta, (ECC::P+1)/4, ECC::P)
+				y = ((beta + pub[0].to_i) % 2 == 1) ? (ECC::P - beta) : beta
+			else
+				raise "Not quadratic residue!"
+			end
 			return [x, y]
 		elsif format == 'hex'
 			return [@sp.decode(pub[2..65], 16), @sp.decode(pub[66..130], 16)]
@@ -126,7 +130,7 @@ class Keys
 		return @sp.decode(priv, 16) if format == 'hex'
 		return @sp.decode(priv[0..64], 16) if format == 'hex_compressed'
 		return @sp.decode(@sp.b58check_to_bin(priv), 256) if format == 'wif'
-		return @sp.decode(@sp.b58check_to_bin(priv)[0..32], 256) if format == 'wif_compressed'
+		return @sp.decode(@sp.b58check_to_bin(priv)[0..31], 256) if format == 'wif_compressed'
 
 		raise "WIF does not represent privkey"
 	end
