@@ -15,6 +15,37 @@ class Scripts
 		return 'a914' + @sp.b58check_to_hex(addr) + '87'
 	end
 
+	# OP_M <PUBKEY1>...<PUBKEYN> OP_N OP_CHECKMULTISIG
+	# m - required number of keys
+	# keys - string array of pubkeys
+	def mk_psh_redeem_script(m, keys)
+		raise "Need at least one key to redeem!" if m < 1
+		raise "Not enough keys supplied" if keys.length < m
+		raise "Too many keys! Maximum is 16." if keys.length > 16
+
+		keys.map!{|key| key.to_s}
+
+		script = encode_op_n(m)
+		keys.each do |key|
+			script += (key.length / 2).to_s(16)
+			script += key
+		end
+
+		script += encode_op_n(keys.length)
+		script += "ae"
+
+		return script
+	end
+
+	# Encode small integers to hex OP_N
+	def encode_op_n(n)
+		raise "Number out of range!" if n < 0 || n > 16
+		return "0" if n == 0
+		
+		op_n = 80 + n
+		return op_n.to_s(16)
+	end
+
 	def address_to_script(addr)
 		if addr[0] == '3' || addr[0] == '2'
 			return mk_scripthash_script(addr)
