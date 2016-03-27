@@ -1,0 +1,1 @@
+Ruby implementation of [pybitcointools](https://github.com/vbuterin/pybitcointools). For learning purposes only.
