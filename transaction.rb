@@ -14,29 +14,30 @@ class Transaction
 	end
 
 	def deserialize(tx)
+		txcpy = deepcopy(tx)
 		obj = {ins: [], outs: []}
-		obj[:version] = @sp.change_endianness(read_and_modify!(4, tx))
-		ins = read_var_int!(tx)
+		obj[:version] = @sp.change_endianness(read_and_modify!(4, txcpy))
+		ins = read_var_int!(txcpy)
 
 		ins.times{
 			obj[:ins] << {
 				outpoint: {
-					hash: @sp.change_endianness(read_and_modify!(32, tx)),
-					index: @sp.change_endianness(read_and_modify!(4, tx))
+					hash: @sp.change_endianness(read_and_modify!(32, txcpy)),
+					index: @sp.change_endianness(read_and_modify!(4, txcpy))
 				},
-				scriptSig: read_var_string!(tx),
-				sequence: @sp.change_endianness(read_and_modify!(4, tx))
+				scriptSig: read_var_string!(txcpy),
+				sequence: @sp.change_endianness(read_and_modify!(4, txcpy))
 			}
 		}
 
-		outs = read_var_int!(tx)
+		outs = read_var_int!(txcpy)
 		outs.times{
 			obj[:outs] << {
-				value: @sp.change_endianness(read_and_modify!(8, tx)),
-				scriptPubKey: read_var_string!(tx)
+				value: @sp.change_endianness(read_and_modify!(8, txcpy)),
+				scriptPubKey: read_var_string!(txcpy)
 			}
 		}
-		obj[:locktime] = @sp.change_endianness(read_and_modify!(4, tx))
+		obj[:locktime] = @sp.change_endianness(read_and_modify!(4, txcpy))
 
 		return obj
 	end

@@ -5,6 +5,9 @@ class TestTransaction < Test::Unit::TestCase
 
 	def test_deserialize
 		t = Transaction.new
+		sp = Specials.new
+		ed = ECDSA.new
+
 		version = '01000000'
 		ins = '01'
 		hash = '75db462b20dd144dd143f5314270569c0a61191f1378c164ce4262e9bff1b079'
@@ -20,14 +23,35 @@ class TestTransaction < Test::Unit::TestCase
 		locktime = '00000000'
 		tx = version+ins+hash+index+script+sequence+outs+value+scr+locktime
 		obj = t.deserialize(tx)
-		assert_equal(version, [obj[:version]].pack('H*').reverse.unpack('H*')[0])
-		assert_equal(hash, [obj[:ins][0][:outpoint][:hash]].pack('H*').reverse.unpack('H*')[0])
-		assert_equal(index, [obj[:ins][0][:outpoint][:index]].pack('H*').reverse.unpack('H*')[0])
+
+		assert_equal(version, sp.change_endianness(obj[:version]))
+		assert_equal(hash, sp.change_endianness(obj[:ins][0][:outpoint][:hash]))
+		assert_equal(index, sp.change_endianness(obj[:ins][0][:outpoint][:index]))
 		assert_equal(script, '8b' + obj[:ins][0][:scriptSig])
-		assert_equal(sequence, [obj[:ins][0][:sequence]].pack('H*').reverse.unpack('H*')[0])
-		assert_equal(value, [obj[:outs][0][:value]].pack('H*').reverse.unpack('H*')[0])
+		assert_equal(sequence, sp.change_endianness(obj[:ins][0][:sequence]))
+		assert_equal(value, sp.change_endianness(obj[:outs][0][:value]))
 		assert_equal(scr, '19' + obj[:outs][0][:scriptPubKey])
 		assert_equal(locktime, obj[:locktime])
+
+		tx23 = '0100000002e00bd5584971a43a0245216613fd7c42277d0cedc503c11c43ba025f4477f728010000' +
+			'006b483045022100be35d2177a1507245528ae2a77cdb7b620ac98beeae6089cd301c2195b234e10' +
+			'02200112b06c221696d04fb4c04eddbd4833664af5cb80ef6208ec5383a607db1a190121025114bd' +
+			'74d6773bf24ce6d504de69821b051ab9eb9d7cd91a921a9413d09011bcffffffff1aa0269b3cb098' +
+			'3ebaf875ed62ef51d47310cd85caf9404e33479c9c53652500020000006a473044022001e35c8b64' +
+			'0c98362117518c663fcd0f699afb31e69cd23473a8c18ca5037e6e02202eb2dee324a7e8ae5fa7fe' +
+			'305fd763da0fad9c2eb29f04e627c4c7a9a15d55b8012103e04a7198a5530179c98d44a23acfe8db' +
+			'7654dd2a1038305a60250481dce3020cffffffff03ac18e601000000001976a914630a8fc125aaa4' +
+			'512af375e0427a940ce724e48b88ac144f1800000000001976a914a5c9fd413f64f41716b3b5a7c3' +
+			'5478550f4815c388ac08350300000000001976a9146a8faf4191cd9228b591f9526bf8678ebf10f0' +
+			'a388ac00000000'
+		obj = t.deserialize(tx23)
+
+		assert_equal(version, sp.change_endianness(obj[:version]))
+		assert_equal(sequence, sp.change_endianness(obj[:ins][0][:sequence]))
+		assert_equal(sequence, sp.change_endianness(obj[:ins][1][:sequence]))
+		assert_equal(locktime, obj[:locktime])
+		assert_equal(2, obj[:ins].length)
+		assert_equal(3, obj[:outs].length)
 	 end
 
 	def test_serialize
@@ -67,28 +91,17 @@ class TestTransaction < Test::Unit::TestCase
 		scr = '1976a914dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac'
 		locktime = '00000000'
 		tx = version+ins+hash+index+script+sequence+outs+value+scr+locktime
-		newtx = t.signature_form(tx, 0, script[2..-1])
-		tx = version+ins+hash+index+script+sequence+outs+value+scr+locktime
-		assert_equal(tx, newtx)
-		newtx = t.signature_form(t.deserialize(tx), 0, script[2..-1], 2)
+
+		newtx = t.signature_form(tx, 0, scr[2..-1])
+		assert_equal(t.deserialize(tx)[:outs][0][:scriptPubKey], t.deserialize(newtx)[:ins][0][:scriptSig])
+
+		newtx = t.signature_form(t.deserialize(tx), 0, scr[2..-1], 2)
 		assert_equal([], newtx[:outs])
-		tx = version+ins+hash+index+script+sequence+outs+value+scr+locktime
-		newtx = t.signature_form(tx, 0, script[2..-1], 3)
-		tx = version+ins+hash+index+script+sequence+outs+value+scr+locktime
-		assert_equal(tx, newtx)
+
+		newtx = t.signature_form(tx, 0, scr[2..-1], 3)
+		assert_equal(t.deserialize(tx)[:outs][0][:scriptPubKey], t.deserialize(newtx)[:ins][0][:scriptSig])
 
 		tx23 = '0100000002e00bd5584971a43a0245216613fd7c42277d0cedc503c11c43ba025f4477f728010000' +
-			'006b483045022100be35d2177a1507245528ae2a77cdb7b620ac98beeae6089cd301c2195b234e10' +
-			'02200112b06c221696d04fb4c04eddbd4833664af5cb80ef6208ec5383a607db1a190121025114bd' +
-			'74d6773bf24ce6d504de69821b051ab9eb9d7cd91a921a9413d09011bcffffffff1aa0269b3cb098' +
-			'3ebaf875ed62ef51d47310cd85caf9404e33479c9c53652500020000006a473044022001e35c8b64' +
-			'0c98362117518c663fcd0f699afb31e69cd23473a8c18ca5037e6e02202eb2dee324a7e8ae5fa7fe' +
-			'305fd763da0fad9c2eb29f04e627c4c7a9a15d55b8012103e04a7198a5530179c98d44a23acfe8db' +
-			'7654dd2a1038305a60250481dce3020cffffffff03ac18e601000000001976a914630a8fc125aaa4' +
-			'512af375e0427a940ce724e48b88ac144f1800000000001976a914a5c9fd413f64f41716b3b5a7c3' +
-			'5478550f4815c388ac08350300000000001976a9146a8faf4191cd9228b591f9526bf8678ebf10f0' +
-			'a388ac00000000'
-		ctx23 = '0100000002e00bd5584971a43a0245216613fd7c42277d0cedc503c11c43ba025f4477f728010000' +
 			'006b483045022100be35d2177a1507245528ae2a77cdb7b620ac98beeae6089cd301c2195b234e10' +
 			'02200112b06c221696d04fb4c04eddbd4833664af5cb80ef6208ec5383a607db1a190121025114bd' +
 			'74d6773bf24ce6d504de69821b051ab9eb9d7cd91a921a9413d09011bcffffffff1aa0269b3cb098' +
@@ -103,8 +116,10 @@ class TestTransaction < Test::Unit::TestCase
 		scr23 = '483045022100be35d2177a1507245528ae2a77cdb7b620ac98beeae6089cd301c2195b234e10'+
 			'02200112b06c221696d04fb4c04eddbd4833664af5cb80ef6208ec5383a607db1a190121025114bd' +
 			'74d6773bf24ce6d504de69821b051ab9eb9d7cd91a921a9413d09011bc'
-		# newtx = t.signature_form(t.deserialize(tx23), 0, scr23)
-		# assert_equal("", newtx[:ins][1][:script])
+
+		#newtx = t.signature_form(t.deserialize(tx23), 0, scr[2..-1])
+		# newtx = t.signature_form(tx23, 0, scr[2..-1])
+		# assert_equal("", t.deserialize(newtx)[:ins][1][:scriptSig])
 		# newtx = t.signature_form(t.deserialize(tx23), 0, scr23, 2)
 		# assert_equal([], newtx[:outs])
 		# newtx = t.signature_form(t.deserialize(tx23), 1, scr23, 3)
@@ -208,6 +223,7 @@ class TestTransaction < Test::Unit::TestCase
 
 	def test_sign_all
 		t = Transaction.new
+		ed = ECDSA.new
 		tx = '01000000062e730fecd38a76a3dd93c342595cddbc54b064c453a5d7986789dcfb178a4c37170000006a47304402206490ed13d441a6745a3d519245e6b49fcffa35260f12a71fc99b5ad50f20026302205cfc4b218c070e80a93179b9681590beb6def2cec4418ca7e630'+
 		'1f7f229c7708012102755ce609041e8e7681332a3df3d9e35431dbe3e45a77b2ddb9d08313421db33efeffffffafbfd849ddf5d7aafd47bc09d7d684dfd8955ea250faf35b5f86a8cf84dababa1d0000006b483045022100a858f692662a7b0c85131e5551d35eed0ba85d'+
 		'ea5024a0e6bc3508dac5bcb7f30220738b15dfa2e200c6ae8922d29dd2bbac7142f9e19fa5986a08f5f8166599a29c012102755ce609041e8e7681332a3df3d9e35431dbe3e45a77b2ddb9d08313421db33efefffffff092941c3c26ae4425d3fc0e59352554a8f74aad98'+
@@ -234,18 +250,19 @@ class TestTransaction < Test::Unit::TestCase
 		tx2 = t.deserialize(tx2)
 		assert_equal(t.sign_all(tx3, priv), t.sign(tx2, 0, priv))
 		tx = t.sign_all(tx, priv)
+
 		sig0 = tx[:ins][0][:scriptSig][2..141]
-		assert_equal(true, ECDSA.new.bip66?(sig0))
+		assert_equal(true, ed.bip66?(sig0))
 		sig1 = tx[:ins][1][:scriptSig][2..143]
-		assert_equal(true, ECDSA.new.bip66?(sig1))
+		assert_equal(true, ed.bip66?(sig1))
 		sig2 = tx[:ins][2][:scriptSig][2..143]
-		assert_equal(true, ECDSA.new.bip66?(sig2))
+		assert_equal(true, ed.bip66?(sig2))
 		sig3 = tx[:ins][3][:scriptSig][2..141]
-		assert_equal(true, ECDSA.new.bip66?(sig3))
+		assert_equal(true, ed.bip66?(sig3))
 		sig4 = tx[:ins][4][:scriptSig][2..141]
-		assert_equal(true, ECDSA.new.bip66?(sig4))
+		assert_equal(true, ed.bip66?(sig4))
 		sig5 = tx[:ins][5][:scriptSig][2..143]
-		assert_equal(true, ECDSA.new.bip66?(sig5))
+		assert_equal(true, ed.bip66?(sig5))
 	end
 
 	def test_multisign
@@ -265,6 +282,8 @@ class TestTransaction < Test::Unit::TestCase
 
 	def test_apply_multisignatures
 		t = Transaction.new
+		ed = ECDSA.new
+
 		tx = '010000000175db462b20dd144dd143f5314270569c0a61191f1378c164ce4262e9bff1b07900000' +
 			'0008b4830450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c70' +
 			'3302203b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31014104bca' +
@@ -281,19 +300,23 @@ class TestTransaction < Test::Unit::TestCase
 		priv2 = "2" * 64
 		priv3 = "3" * 64
 		scriptPK = "76a914569076ba39fc4ff6a2291d9ea9196d8c08f9c7ab88ac"
-		tx2 = '010000000175db462b20dd144dd143f5314270569c0a61191f1378c164ce4262e9bff1b07900000' +
-			'0008b4830450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c70' +
-			'3302203b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31014104bca' +
-			'69c59dc7a6d8ef4d3043bdcb626e9e29837b9beb143168938ae8165848bfc788d6ff4cdf1ef843e' +
-			'6a9ccda988b323d12a367dd758261dd27a63f18f56ce77ffffffff0133f50100000000001976a91' +
-			'4dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac00000000'
-		sig1 = t.multisign(tx, i, scriptPK, priv1)
-		#sig2 = t.multisign(tx, i, scriptPK, priv2)
-		#sig3 = t.multisign(tx, i, scriptPK, priv3)
 
-		#res = t.apply_multisignatures(tx, i, script, [sig1, sig2, sig3])
-		res = t.apply_multisignatures(tx2, i, script, [sig1])
+		sig1 = t.multisign(tx, i, scriptPK, priv1)
+		sig2 = t.multisign(tx, i, scriptPK, priv2)
+		sig3 = t.multisign(tx, i, scriptPK, priv3)
+
+		res = t.apply_multisignatures(tx, i, script, [sig1])
 		sig = res[:ins][0][:scriptSig][3..144]
-		assert_equal(true, ECDSA.new.bip66?(sig))
+		assert_equal(true, ed.bip66?(sig))
+
+		res = t.apply_multisignatures(tx, i, script, [sig1, sig2, sig3])
+		sig = res[:ins][0][:scriptSig][3..144]
+		assert_equal(true, ed.bip66?(sig))
+
+		sig = res[:ins][0][:scriptSig][149..290]
+		assert_equal(true, ed.bip66?(sig))
+
+		sig = res[:ins][0][:scriptSig][295..434]
+		assert_equal(true, ed.bip66?(sig))
 	end
 end
