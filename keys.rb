@@ -67,8 +67,8 @@ class Keys
 	end
 
 	# Decode pubkey from format to decimal
-	def decode_pubkey(pub, format = 'None')
-		format = get_pubkey_format(pub) if format == 'None'
+	def decode_pubkey(pub, format = nil)
+		format = get_pubkey_format(pub) if format.nil? #format == 'None'
 
 		if format == 'decimal'
 			return pub
@@ -121,8 +121,8 @@ class Keys
 	end
 
 	# Decode privkey from format to decimal
-	def decode_privkey(priv, format='None')
-		format = get_privkey_format(priv) if format == 'None'
+	def decode_privkey(priv, format=nil)
+		format = get_privkey_format(priv) if format.nil? #format == 'None'
 
 		return priv if format == 'decimal'
 		return @sp.decode(priv, 256) if format == 'bin'

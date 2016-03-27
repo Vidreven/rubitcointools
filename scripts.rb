@@ -7,12 +7,12 @@ class Scripts
 	end
 
 	# OP_DUP OP_HASH160 hex_len_PKH PKH OP_EQUALVERIFY OP_CHECKSIG
-	def mk_pubkey_script(addr)
-		return '76a914' + @sp.b58check_to_hex(addr) + '88ac' #addr part needs to be 40 char in length
+	def mk_pubkey_script(pkh)
+		return '76a914' + @sp.b58check_to_hex(pkh) + '88ac' #addr part needs to be 40 char in length
 	end
 
-	def mk_scripthash_script(addr)
-		return 'a914' + @sp.b58check_to_hex(addr) + '87'
+	def mk_scripthash_script(hash)
+		return 'a914' + @sp.b58check_to_hex(hash) + '87'
 	end
 
 	# OP_M <PUBKEY1>...<PUBKEYN> OP_N OP_CHECKMULTISIG
@@ -24,6 +24,7 @@ class Scripts
 		raise "Too many keys! Maximum is 16." if keys.length > 16
 
 		keys.map!{|key| key.to_s}
+		keys.sort!
 
 		script = encode_op_n(m)
 		keys.each do |key|

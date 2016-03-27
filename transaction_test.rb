@@ -257,9 +257,43 @@ class TestTransaction < Test::Unit::TestCase
 			'6a9ccda988b323d12a367dd758261dd27a63f18f56ce77ffffffff0133f50100000000001976a91' +
 			'4dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac00000000'
 		i = 0
-		priv = '1111111111111111111111111111111111111111111111111111111111111111'
-		script = "304402204e63d034c6074f17e9c5f8766bc7b5468a0dce5b69578bd08554e8f21434c58e0220763c6966f47c39068c8dcd3f3dbd8e2a4ea13ac9e9c899ca1fbc00e2558cbb8b01"
+		priv = '1' * 64
+		script = "76a914569076ba39fc4ff6a2291d9ea9196d8c08f9c7ab88ac"
 		sig = t.multisign(tx, i, script, priv)
-		#assert_equal(true, ECDSA.new.bip66?(sig))
+		assert_equal(true, ECDSA.new.bip66?(sig[0..-3]))
+	end
+
+	def test_apply_multisignatures
+		t = Transaction.new
+		tx = '010000000175db462b20dd144dd143f5314270569c0a61191f1378c164ce4262e9bff1b07900000' +
+			'0008b4830450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c70' +
+			'3302203b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31014104bca' +
+			'69c59dc7a6d8ef4d3043bdcb626e9e29837b9beb143168938ae8165848bfc788d6ff4cdf1ef843e' +
+			'6a9ccda988b323d12a367dd758261dd27a63f18f56ce77ffffffff0133f50100000000001976a91' +
+			'4dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac00000000'
+		i = 0
+		script = "524104a882d414e478039cd5b52a92ffb13dd5e6bd4515497439dffd691a0f12af9575fa349b5694ed3155b136f" +
+			"09e63975a1700c9f4d4df849323dac06cf3bd6458cd41046ce31db9bdd543e72fe3039a1f1c047dab87037c36a669f" +
+			"f90e28da1848f640de68c2fe913d363a51154a0c62d7adea1b822d05035077418267b1a1379790187410411ffd36c7" +
+			"0776538d079fbae117dc38effafb33304af83ce4894589747aee1ef992f63280567f52f5ba870678b4ab4ff6c8ea60" +
+			"0bd217870a8b4f1f09f3a8e8353ae"
+		priv1 = "1" * 64
+		priv2 = "2" * 64
+		priv3 = "3" * 64
+		scriptPK = "76a914569076ba39fc4ff6a2291d9ea9196d8c08f9c7ab88ac"
+		tx2 = '010000000175db462b20dd144dd143f5314270569c0a61191f1378c164ce4262e9bff1b07900000' +
+			'0008b4830450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c70' +
+			'3302203b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31014104bca' +
+			'69c59dc7a6d8ef4d3043bdcb626e9e29837b9beb143168938ae8165848bfc788d6ff4cdf1ef843e' +
+			'6a9ccda988b323d12a367dd758261dd27a63f18f56ce77ffffffff0133f50100000000001976a91' +
+			'4dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac00000000'
+		sig1 = t.multisign(tx, i, scriptPK, priv1)
+		#sig2 = t.multisign(tx, i, scriptPK, priv2)
+		#sig3 = t.multisign(tx, i, scriptPK, priv3)
+
+		#res = t.apply_multisignatures(tx, i, script, [sig1, sig2, sig3])
+		res = t.apply_multisignatures(tx2, i, script, [sig1])
+		sig = res[:ins][0][:scriptSig][3..144]
+		assert_equal(true, ECDSA.new.bip66?(sig))
 	end
 end

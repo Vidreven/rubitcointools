@@ -52,11 +52,11 @@ class TestScripts < Test::Unit::TestCase
 		res = s.mk_psh_redeem_script(2, [pk1, pk2, pk3])
 		assert_equal("52", res[0..1])
 		assert_equal("41", res[2..3])
-		assert_equal(pk1, res[4..133])
+		assert_equal(pk3, res[4..133])
 		assert_equal("41", res[134..135])
 		assert_equal(pk2, res[136..265])
 		assert_equal("41", res[266..267])
-		assert_equal(pk3, res[268..397])
+		assert_equal(pk1, res[268..397])
 		assert_equal("53", res[398..399])
 		assert_equal("ae", res[-2..-1])
 	end

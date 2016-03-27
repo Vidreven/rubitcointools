@@ -164,6 +164,7 @@ class Transaction
 		address = @k.pubtoaddr(pub)
 		txobj = deepcopy(tx)
 
+		# u scriptSig ide scriptPubKey transakcije koju želimo potrošiti (ali nije nužno)
 		signing_tx = signature_form(tx, i, @sc.mk_pubkey_script(address), hashcode)
 		signing_tx = serialize(signing_tx) # Samo ako prethodno nije serijalizirana
 		sig = ecdsa_tx_sign(signing_tx, priv, hashcode)
@@ -174,7 +175,7 @@ class Transaction
 		return txobj
 	end
 
-	# Takes a serialized transaction as input with scriptPubKey insted of scriptSig
+	# Takes a serialized transaction as input
 	# and signs every transaction input.
 	def sign_all(tx, priv)
 
@@ -188,9 +189,34 @@ class Transaction
 		return tx
 	end
 
+	# Takes a deserialized transaction as input and signs the input
+	# script =? pubKeyhash
 	def multisign(tx, i, script, priv, hashcode=SIGHASH_ALL)
 		modtx = signature_form(tx, i, script, hashcode)
 		return ecdsa_tx_sign(modtx, priv, hashcode)
+	end
+
+	# Takes a serialized multisig transaction as input
+	# and appends signatures and script to the input field.
+	# Separate persons can controll different pubkeys/signatures.
+	# Params:
+	# +tx+:: serialized multisig transaction
+	# +i+:: - input index
+	# +script+:: - PSH reddem script (OP_M pubkeys OP_N OP_CHECKMULTISIG)
+	# +sigs+:: - string array of signatures
+	def apply_multisignatures(tx, i, script, sigs)
+		txobj = deserialize(tx)
+		scriptSig = "0" # Push byte 0x0 due to bug in multisig
+
+		sigs.each do |sig|
+			scriptSig += (sig.length / 2).to_s(16) + sig
+		end
+
+		scriptSig += (script.length / 2).to_s(16) + script
+
+		txobj[:ins][i][:scriptSig] = scriptSig
+
+		return txobj
 	end
 
 	private
