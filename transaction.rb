@@ -51,20 +51,19 @@ class Transaction
 		txobj[:ins].each do |input|
 			raw += @sp.change_endianness(input[:outpoint][:hash])
 			raw += @sp.change_endianness(input[:outpoint][:index])
-			scriptlen = input[:scriptSig].length / 2 # convert charlen to bytelen var_string!
-			scriptlen = scriptlen.to_s(16)
-			raw += scriptlen + input[:scriptSig]
+			#scriptlen = input[:scriptSig].length / 2 # convert charlen to bytelen
+			#scriptlen = scriptlen.to_s(16)
+			#raw += scriptlen + input[:scriptSig]
+			raw += to_var_str(input[:scriptSig])
 			raw += @sp.change_endianness(input[:sequence])
 		end
 
-		#raw += txobj[:outs].length.to_s(16).rjust(2, '0') # var_int!
+		#raw += txobj[:outs].length.to_s(16).rjust(2, '0')
 		raw += to_var_int(txobj[:outs].length)
 
 		txobj[:outs].each do |output|
 			raw += @sp.change_endianness(output[:value])
-			scriptlen = output[:scriptPubKey].length / 2 # var_string!
-			scriptlen = scriptlen.to_s(16)
-			raw += scriptlen + output[:scriptPubKey]
+			raw += to_var_str(output[:scriptPubKey])
 		end
 
 		raw += @sp.change_endianness(txobj[:locktime])
@@ -247,18 +246,16 @@ class Transaction
 		return read_and_modify!(size, tx)
 	end
 
-	# Takes integer value and converts it into var_int
 	def to_var_int(val)
-		val = val.to_s(16).upcase
+		val = val.to_s(16)
 		return val.rjust(2, '0') if val.to_i(16) < 0xFD
-		return 'FD' + @sp.change_endianness(val.rjust(4, '0')).upcase if val.to_i(16) < 0xFFFF
-		return 'FE' + @sp.change_endianness(val.rjust(8, '0')).upcase if val.to_i(16) < 0xFFFFFFFF
-		return 'FF' + @sp.change_endianness(val.rjust(16, '0')).upcase
+		return 'fd' + @sp.change_endianness(val.rjust(4, '0')) if val.to_i(16) < 0xFFFF
+		return 'fe' + @sp.change_endianness(val.rjust(8, '0')) if val.to_i(16) < 0xFFFFFFFF
+		return 'ff' + @sp.change_endianness(val.rjust(16, '0'))
 	end
 
-	# Takes a string and converts it into var_str
 	def to_var_str(str)
-		return to_var_int(str.length) + str
+		return to_var_int(str.length / 2) + str
 	end
 
 	def deepcopy(obj)

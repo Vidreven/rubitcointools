@@ -251,13 +251,13 @@ class TestTransaction < Test::Unit::TestCase
 		assert_equal(t.sign_all(tx3, priv), t.sign(tx2, 0, priv))
 		tx = t.sign_all(tx, priv)
 
-		sig0 = tx[:ins][0][:scriptSig][2..141]
+		sig0 = tx[:ins][0][:scriptSig][2..143]
 		assert_equal(true, ed.bip66?(sig0))
-		sig1 = tx[:ins][1][:scriptSig][2..143]
+		sig1 = tx[:ins][1][:scriptSig][2..141]
 		assert_equal(true, ed.bip66?(sig1))
-		sig2 = tx[:ins][2][:scriptSig][2..143]
+		sig2 = tx[:ins][2][:scriptSig][2..141]
 		assert_equal(true, ed.bip66?(sig2))
-		sig3 = tx[:ins][3][:scriptSig][2..141]
+		sig3 = tx[:ins][3][:scriptSig][2..143]
 		assert_equal(true, ed.bip66?(sig3))
 		sig4 = tx[:ins][4][:scriptSig][2..141]
 		assert_equal(true, ed.bip66?(sig4))
@@ -327,35 +327,35 @@ class TestTransaction < Test::Unit::TestCase
 		int = t.read_var_int!(varint)
 		assert_equal(1, int)
 
-		varint = 'FC'
+		varint = 'fc'
 		int = t.read_var_int!(varint)
 		assert_equal(252, int)
 
-		varint = 'FDFD00'
+		varint = 'fdfd00'
 		int = t.read_var_int!(varint)
 		assert_equal(253, int)
 
-		varint = 'FDFF01'
+		varint = 'fdff01'
 		int = t.read_var_int!(varint)
 		assert_equal(511, int)
 
-		varint = 'FDFEFF'
+		varint = 'fdfeff'
 		int = t.read_var_int!(varint)
 		assert_equal(65534, int)
 
-		varint = 'FEFFFF0000'
+		varint = 'FEFFFF0000'.downcase
 		int = t.read_var_int!(varint)
 		assert_equal(65535, int)
 
-		varint = 'FEFFFF0100'
+		varint = 'FEFFFF0100'.downcase
 		int = t.read_var_int!(varint)
 		assert_equal(131071, int)
 
-		varint = 'FEFEFFFFFF'
+		varint = 'FEFEFFFFFF'.downcase
 		int = t.read_var_int!(varint)
 		assert_equal(2**32 - 2, int)
 
-		varint = 'FFFFFFFFFF00000000'
+		varint = 'FFFFFFFFFF00000000'.downcase
 		int = t.read_var_int!(varint)
 		assert_equal(2**32 -1, int)
 	end
@@ -367,11 +367,11 @@ class TestTransaction < Test::Unit::TestCase
 		str = t.read_var_string!(varstr)
 		assert_equal('h', str)
 
-		varstr = 'FC' + 'h'*252
+		varstr = 'fc' + 'h'*252
 		str = t.read_var_string!(varstr)
 		assert_equal('h'*252, str)
 
-		varstr = 'FDFD00' + 'h'*253
+		varstr = 'fdfd00' + 'h'*253
 		str = t.read_var_string!(varstr)
 		assert_equal('h'*253, str)
 
@@ -389,51 +389,51 @@ class TestTransaction < Test::Unit::TestCase
 
 		int = 252
 		varint = t.to_var_int(int)
-		assert_equal('FC', varint)
+		assert_equal('fc', varint)
 
 		int = 253
 		varint = t.to_var_int(int)
-		assert_equal('FDFD00', varint)
+		assert_equal('fdfd00', varint)
 
 		int = 511
 		varint = t.to_var_int(int)
-		assert_equal('FDFF01', varint)
+		assert_equal('fdff01', varint)
 
 		int = 65534
 		varint = t.to_var_int(int)
-		assert_equal('FDFEFF', varint)
+		assert_equal('fdfeff', varint)
 
 		int = 65535
 		varint = t.to_var_int(int)
-		assert_equal('FEFFFF0000', varint)
+		assert_equal('feffff0000', varint)
 
 		int = 131071
 		varint = t.to_var_int(int)
-		assert_equal('FEFFFF0100', varint)
+		assert_equal('feffff0100', varint)
 
 		int = 2**32 - 2
 		varint = t.to_var_int(int)
-		assert_equal('FEFEFFFFFF', varint)
+		assert_equal('fefeffffff', varint)
 
 		int = 2**32 - 1
 		varint = t.to_var_int(int)
-		assert_equal('FFFFFFFFFF00000000', varint)
+		assert_equal('ffffffffff00000000', varint)
 	end
 
 	def test_to_var_str
 		t = Transaction.new
 
-		str = 'h'
+		str = '01'
 		varstr = t.to_var_str(str)
-		assert_equal('01h', varstr)
+		assert_equal('0101', varstr)
 
-		str = 'h' * 252
+		str = '01' * 252
 		varstr = t.to_var_str(str)
-		assert_equal('FC' + 'h'*252, varstr)
+		assert_equal('fc' + '01'*252, varstr)
 
-		str = 'h' * 253
+		str = '01' * 253
 		varstr = t.to_var_str(str)
-		assert_equal('FDFD00' + 'h'*253, varstr)
+		assert_equal('fdfd00' + '01'*253, varstr)
 
 		str = ''
 		varstr = t.to_var_str(str)
