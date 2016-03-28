@@ -319,4 +319,104 @@ class TestTransaction < Test::Unit::TestCase
 		sig = res[:ins][0][:scriptSig][295..434]
 		assert_equal(true, ed.bip66?(sig))
 	end
+
+	def test_read_var_int
+		t = Transaction.new
+
+		varint = '01'
+		int = t.read_var_int!(varint)
+		assert_equal(1, int)
+
+		varint = 'FC'
+		int = t.read_var_int!(varint)
+		assert_equal(252, int)
+
+		varint = 'FDFD00'
+		int = t.read_var_int!(varint)
+		assert_equal(253, int)
+
+		varint = 'FDFF01'
+		int = t.read_var_int!(varint)
+		assert_equal(511, int)
+
+		varint = 'FDFEFF'
+		int = t.read_var_int!(varint)
+		assert_equal(65534, int)
+
+		varint = 'FEFFFF0000'
+		int = t.read_var_int!(varint)
+		assert_equal(65535, int)
+
+		varint = 'FEFFFF0100'
+		int = t.read_var_int!(varint)
+		assert_equal(131071, int)
+
+		varint = 'FEFEFFFFFF'
+		int = t.read_var_int!(varint)
+		assert_equal(2**32 - 2, int)
+
+		varint = 'FFFFFFFFFF00000000'
+		int = t.read_var_int!(varint)
+		assert_equal(2**32 -1, int)
+	end
+
+	def test_read_var_string
+		t = Transaction.new
+
+		varstr = '01h'
+		str = t.read_var_string!(varstr)
+		assert_equal('h', str)
+
+		varstr = 'FC' + 'h'*252
+		str = t.read_var_string!(varstr)
+		assert_equal('h'*252, str)
+
+		varstr = 'FDFD00' + 'h'*253
+		str = t.read_var_string!(varstr)
+		assert_equal('h'*253, str)
+
+		varstr = '00'
+		str = t.read_var_string!(varstr)
+		assert_equal('', str)
+	end
+
+	def test_to_var_int
+		t = Transaction.new
+
+		int = 0
+		varint = t.to_var_int(int)
+		assert_equal('00', varint)
+
+		int = 252
+		varint = t.to_var_int(int)
+		assert_equal('FC', varint)
+
+		int = 253
+		varint = t.to_var_int(int)
+		assert_equal('FDFD00', varint)
+
+		int = 511
+		varint = t.to_var_int(int)
+		assert_equal('FDFF01', varint)
+
+		int = 65534
+		varint = t.to_var_int(int)
+		assert_equal('FDFEFF', varint)
+
+		int = 65535
+		varint = t.to_var_int(int)
+		assert_equal('FEFFFF0000', varint)
+
+		int = 131071
+		varint = t.to_var_int(int)
+		assert_equal('FEFFFF0100', varint)
+
+		int = 2**32 - 2
+		varint = t.to_var_int(int)
+		assert_equal('FEFEFFFFFF', varint)
+
+		int = 2**32 - 1
+		varint = t.to_var_int(int)
+		assert_equal('FFFFFFFFFF00000000', varint)
+	end
 end

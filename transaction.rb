@@ -45,7 +45,8 @@ class Transaction
 	def serialize(txobj)
 		raw = ''
 		raw += @sp.change_endianness(txobj[:version])
-		raw += txobj[:ins].length.to_s(16).rjust(2, '0') # var_int!
+		#raw += txobj[:ins].length.to_s(16).rjust(2, '0')
+		raw += to_var_int(txobj[:ins].length)
 
 		txobj[:ins].each do |input|
 			raw += @sp.change_endianness(input[:outpoint][:hash])
@@ -56,7 +57,8 @@ class Transaction
 			raw += @sp.change_endianness(input[:sequence])
 		end
 
-		raw += txobj[:outs].length.to_s(16).rjust(2, '0') # var_int!
+		#raw += txobj[:outs].length.to_s(16).rjust(2, '0') # var_int!
+		raw += to_var_int(txobj[:outs].length)
 
 		txobj[:outs].each do |output|
 			raw += @sp.change_endianness(output[:value])
@@ -205,7 +207,7 @@ class Transaction
 	# +i+:: - input index
 	# +script+:: - PSH reddem script (OP_M pubkeys OP_N OP_CHECKMULTISIG)
 	# +sigs+:: - string array of signatures
-	def apply_multisignatures(tx, i, script, sigs)
+	def apply_multisignatures(tx, i, script, sigs) # *sigs?
 		txobj = deserialize(tx)
 		scriptSig = "0" # Push byte 0x0 due to bug in multisig
 
@@ -220,7 +222,7 @@ class Transaction
 		return txobj
 	end
 
-	private
+	#private
 
 	# accepts length in bytes
 	# modifies the string by slicing off bytes
@@ -230,6 +232,7 @@ class Transaction
 	end
 
 	# returns variable part of varint and modyfies tx
+	# Longer numbers are encoded in little endian.
 	def read_var_int!(tx)
 		val = tx.slice!(0..1).to_i(16)
 		return val if val < 253
@@ -242,6 +245,15 @@ class Transaction
 	def read_var_string!(tx)
 		size = read_var_int!(tx)
 		return read_and_modify!(size, tx)
+	end
+
+	# Takes integer value and converts it into var_int
+	def to_var_int(val)
+		val = val.to_s(16).upcase
+		return val.rjust(2, '0') if val.to_i(16) < 0xFD
+		return 'FD' + @sp.change_endianness(val.rjust(4, '0')).upcase if val.to_i(16) < 0xFFFF
+		return 'FE' + @sp.change_endianness(val.rjust(8, '0')).upcase if val.to_i(16) < 0xFFFFFFFF
+		return 'FF' + @sp.change_endianness(val.rjust(16, '0')).upcase
 	end
 
 	def deepcopy(obj)
