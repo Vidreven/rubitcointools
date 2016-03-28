@@ -419,4 +419,24 @@ class TestTransaction < Test::Unit::TestCase
 		varint = t.to_var_int(int)
 		assert_equal('FFFFFFFFFF00000000', varint)
 	end
+
+	def test_to_var_str
+		t = Transaction.new
+
+		str = 'h'
+		varstr = t.to_var_str(str)
+		assert_equal('01h', varstr)
+
+		str = 'h' * 252
+		varstr = t.to_var_str(str)
+		assert_equal('FC' + 'h'*252, varstr)
+
+		str = 'h' * 253
+		varstr = t.to_var_str(str)
+		assert_equal('FDFD00' + 'h'*253, varstr)
+
+		str = ''
+		varstr = t.to_var_str(str)
+		assert_equal('00', varstr)
+	end
 end

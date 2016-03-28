@@ -256,6 +256,11 @@ class Transaction
 		return 'FF' + @sp.change_endianness(val.rjust(16, '0')).upcase
 	end
 
+	# Takes a string and converts it into var_str
+	def to_var_str(str)
+		return to_var_int(str.length) + str
+	end
+
 	def deepcopy(obj)
 		return Marshal.load(Marshal.dump(obj))
 	end
