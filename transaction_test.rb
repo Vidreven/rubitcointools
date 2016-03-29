@@ -313,6 +313,10 @@ class TestTransaction < Test::Unit::TestCase
 		sig = res[:ins][0][:scriptSig][3..144]
 		assert_equal(true, ed.bip66?(sig))
 
+		res = t.apply_multisignatures(tx, i, script, sig1, sig2, sig3)
+		sig = res[:ins][0][:scriptSig][3..144]
+		assert_equal(true, ed.bip66?(sig))
+
 		sig = res[:ins][0][:scriptSig][149..290]
 		assert_equal(true, ed.bip66?(sig))
 

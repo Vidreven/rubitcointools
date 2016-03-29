@@ -205,10 +205,14 @@ class Transaction
 	# +tx+:: serialized multisig transaction
 	# +i+:: - input index
 	# +script+:: - PSH reddem script (OP_M pubkeys OP_N OP_CHECKMULTISIG)
-	# +sigs+:: - string array of signatures
-	def apply_multisignatures(tx, i, script, sigs) # *sigs?
+	# +sigs+:: - string list or array of signatures
+	def apply_multisignatures(tx, i, script, *sigs)
 		txobj = deserialize(tx)
 		scriptSig = "0" # Push byte 0x0 due to bug in multisig
+
+		# In case sigs is an array * puts it inside another array
+		# so that outter array size is 1.
+		sigs = sigs[0] if sigs.length == 1
 
 		sigs.each do |sig|
 			scriptSig += (sig.length / 2).to_s(16) + sig
