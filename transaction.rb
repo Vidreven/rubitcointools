@@ -14,7 +14,8 @@ class Transaction
 	end
 
 	def deserialize(tx)
-		txcpy = deepcopy(tx)
+		#txcpy = deepcopy(tx)
+		txcpy = tx.clone
 		obj = {ins: [], outs: []}
 		obj[:version] = @sp.change_endianness(read_and_modify!(4, txcpy))
 		ins = read_var_int!(txcpy)
@@ -88,7 +89,7 @@ class Transaction
 			return serialize(signature_form(deserialize(tx), i, scriptPubKey, hashcode))
 		end
 
-		newtx = deepcopy(tx)
+		newtx = tx.clone #deepcopy(tx)
 
 		newtx[:ins].each do |input|
 			input[:scriptSig] = ""
