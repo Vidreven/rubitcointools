@@ -248,6 +248,21 @@ class Transaction
 		return outpoint
 	end
 
+	# Takes a list of input and output hashes
+	# in0, in1, ..., out0, out1, ...
+	def mktx(*args)
+		raise "Input can't be nil" if args[0].nil?
+		raise "Input can't be empty" if args[0].length == 0
+		raise "Invalid input" if args[0].length < 2
+
+		tx = {version: '1', locktime: '0', ins: [], outs: []}
+		args.each do |arg|
+			input?(arg) ? tx[:ins] << arg : tx[:outs] << arg
+		end
+
+		return serialize(tx)
+	end
+
 	#private
 
 	# accepts length in bytes

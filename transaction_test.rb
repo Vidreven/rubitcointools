@@ -496,6 +496,43 @@ class TestTransaction < Test::Unit::TestCase
 		assert_equal('ffffffff', input[:sequence])
 	end
 
+	def test_mktx
+		t = Transaction.new
+
+		err = t.mktx(nil) rescue $!.message
+		assert_equal(err, "Input can't be nil")
+
+		err = t.mktx('') rescue $!.message
+		assert_equal(err, "Input can't be empty")
+
+		err = t.mktx('a') rescue $!.message
+		assert_equal(err, "Invalid input")
+
+		err = t.mktx(['a']) rescue $!.message
+		assert_equal(err, "Invalid input")
+
+		hash = '75db462b20dd144dd143f5314270569c0a61191f1378c164ce4262e9bff1b079'
+		index = '0'
+		scriptSig= '30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c703302203'+
+				'b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31'
+		sequence = 'ffffffff'
+		value = '128307'
+		scriptPubKey = '1976a914dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac'
+
+		input = {outpoint: {hash: hash, index: index}, scriptSig: scriptSig, sequence: sequence}
+		output = {value: value, scriptPubKey: scriptPubKey}
+
+		tx = t.mktx(input, output)
+
+		output = t.mkout(value, scriptPubKey)
+		tx2 = t.mktx(input, output)
+		assert_equal(tx, tx2)
+
+		input = t.mkin(hash, index, scriptSig)
+		tx3 = t.mktx(input, output)
+		assert_equal(tx, tx3)
+	end
+
 	# def test_input
 	# 	t = Transaction.new
 
