@@ -225,6 +225,29 @@ class Transaction
 		return txobj
 	end
 
+	def mkout(amount='546', scriptPubKey)
+		raise "Amount must be present" if amount.nil?
+		raise "Amount can't be empty" if amount.empty?
+		raise "Amount must be atleast 546 satoshi" if amount.to_i < 546
+
+		raise "Script must be present" if scriptPubKey.nil?
+		raise "Script can't be empty" if scriptPubKey.empty?
+		raise "Invalid script" if scriptPubKey.size < 52
+
+		return {value: amount, scriptPubKey: scriptPubKey}
+	end
+
+	def mkin(hash, index, scriptSig, sequence='ffffffff')
+		raise "Input can't be empty" unless [hash, index, scriptSig].none? {|x| x.empty?}
+		raise "Invalid signature" unless @dsa.bip66? scriptSig
+
+		outpoint = {outpoint: {hash: hash, index: index}}
+		outpoint[:scriptSig] = scriptSig
+		outpoint[:sequence] = sequence
+
+		return outpoint
+	end
+
 	#private
 
 	# accepts length in bytes
@@ -260,6 +283,12 @@ class Transaction
 
 	def to_var_str(str)
 		return to_var_int(str.length / 2) + str
+	end
+
+	private
+
+	def input?(arg)
+		arg.has_key? :outpoint
 	end
 
 	def deepcopy(obj)

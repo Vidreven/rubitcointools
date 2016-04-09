@@ -443,4 +443,72 @@ class TestTransaction < Test::Unit::TestCase
 		varstr = t.to_var_str(str)
 		assert_equal('00', varstr)
 	end
+
+	def test_mkout
+		t = Transaction.new
+
+		err = t.mkout(nil, nil) rescue $!.message
+		assert_equal(err, "Amount must be present")
+
+		err = t.mkout('', nil) rescue $!.message
+		assert_equal(err, "Amount can't be empty")
+
+		err = t.mkout('500', nil) rescue $!.message
+		assert_equal(err, "Amount must be atleast 546 satoshi")
+
+		err = t.mkout('546', nil) rescue $!.message
+		assert_equal(err, "Script must be present")
+
+		err = t.mkout('546', '') rescue $!.message
+		assert_equal(err, "Script can't be empty")
+
+		err = t.mkout('546', '19761488ac') rescue $!.message
+		assert_equal(err, "Invalid script")
+
+		output = t.mkout('1976a914dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac')
+		assert_equal('546', output[:value])
+		assert_equal('1976a914dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac', output[:scriptPubKey])
+
+		output = t.mkout('5000','1976a914dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac')
+		assert_equal('5000', output[:value])
+		assert_equal('1976a914dd6cce9f255a8cc17bda8ba0373df8e861cb866e88ac', output[:scriptPubKey])
+	end
+
+	def test_mkin
+		t = Transaction.new
+
+		err = t.mkin('all', 'some', '') rescue $!.message
+		assert_equal(err, "Input can't be empty")
+
+		err = t.mkin('hash', 'index', '3045') rescue $!.message
+		assert_equal(err, "Invalid signature")
+
+		hash = '75db462b20dd144dd143f5314270569c0a61191f1378c164ce4262e9bff1b079'
+		index = '0'
+		scriptSig= '30450221008f906b9fe728cb17c81deccd6704f664ed1ac920223bb2eca918f066269c703302203'+
+				'b1c496fd4c3fa5071262b98447fbca5e3ed7a52efe3da26aa58f738bd342d31'
+
+		input = t.mkin(hash, index, scriptSig)
+
+		assert_equal(hash, input[:outpoint][:hash])
+		assert_equal(index, input[:outpoint][:index])
+		assert_equal(scriptSig, input[:scriptSig])
+		assert_equal('ffffffff', input[:sequence])
+	end
+
+	# def test_input
+	# 	t = Transaction.new
+
+	# 	arg = {outpoint: ['a', 'b']}
+	# 	input = t.input?(arg)
+	# 	assert_equal(true, input)
+
+	# 	arg = {script: 'z'}
+	# 	input = t.input?(arg)
+	# 	assert_equal(false, input)
+
+	# 	arg = {}
+	# 	input = t.input?(arg)
+	# 	assert_equal(false, input)
+	# end
 end
