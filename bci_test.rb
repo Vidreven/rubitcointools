@@ -71,12 +71,12 @@ class TestBCI < Test::Unit::TestCase
 	end
 
 	def test_get_block_at_height
-		block = @bci.get_block_at_height 406513
+		block = @bci.get_block_at_height 406670 #408006
 		assert_not_equal('', block)
 	end
 
 	def test_get_block_header_data
-		header = @bci.get_block_header_data 406513
+		header = @bci.get_block_header_data 406670
 		assert_equal("0000000000000000028a5ff4b60341022cc061c44b25c8c729030c36c2b2a434", header[:hash])
 		assert_equal(4, header[:version])
 		assert_equal(1460231260, header[:timestamp])
@@ -85,7 +85,7 @@ class TestBCI < Test::Unit::TestCase
 	end
 
 	def test_get_txs_in_block
-		txs = @bci.get_txs_in_block 406513
+		txs = @bci.get_txs_in_block 406670
 		assert_not_equal(0, txs.size)
 	end
 end
