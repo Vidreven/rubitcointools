@@ -3,12 +3,14 @@ require 'scripts'
 describe Scripts do
 
 	s = Scripts.new
+	addr = '1KKKK6N21XKo48zWKuQKXdvSsCf95ibHFa'
+	multi = '3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy'
+	test = "2N9hLwkSqr1cPQAPxbrGVUjxyjD11G2e1he"
 
-	context "#mk_pubkey_script" do
+	context ".mk_pubkey_script" do
 
 		context "given public key" do
 
-			addr = '1KKKK6N21XKo48zWKuQKXdvSsCf95ibHFa'
 			script = s.mk_pubkey_script addr
 
 			it "converts it to scriptPubKey" do
@@ -22,20 +24,19 @@ describe Scripts do
 		end
 	end
 
-	context "#mk_scripthash_script" do
+	context ".mk_scripthash_script" do
 
 		context "given script hash" do
 
 			it "converts it to scriptPubKey" do
-				addr = '3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy'
-				script = s.mk_scripthash_script addr
+				script = s.mk_scripthash_script multi
 				expect(script[0..3]).to eql 'a914'
 				expect(script[-2..-1]).to eql '87'
 			end
 		end
 	end
 
-	context "#encode_op_n" do
+	context ".encode_op_n" do
 
 		context "given input out of range" do
 
@@ -63,7 +64,7 @@ describe Scripts do
 		end
 	end
 
-	context "#mk_psh_redeem_script" do
+	context ".mk_psh_redeem_script" do
 
 		pk1 = "04a882d414e478039cd5b52a92ffb13dd5e6bd4515497439dffd691a0f12af9575fa349b5694ed3155b136f09e63975a1700c9f4d4df849323dac06cf3bd6458cd"
 		pk2 = "046ce31db9bdd543e72fe3039a1f1c047dab87037c36a669ff90e28da1848f640de68c2fe913d363a51154a0c62d7adea1b822d05035077418267b1a1379790187"
@@ -115,6 +116,66 @@ describe Scripts do
 				expect(res[268..397]).to eql pk1
 				expect(res[398..399]).to eql '53'
 				expect(res[-2..-1]).to eql 'ae'
+			end
+		end
+	end
+
+	context ".address_to_script" do
+
+		context "given address" do
+
+			it "converts it to scriptPubKey" do
+				script = s.address_to_script addr
+				expect(script[0..5]).to eql '76a914'
+				expect(script[-4..-1]).to eql '88ac'
+			end
+		end
+
+		context "given multisig address" do
+			
+			it "converts it to scriptPubKey" do
+				script = s.address_to_script multi
+				expect(script[0..3]).to eql 'a914'
+				expect(script[-2..-1]).to eql '87'
+			end
+		end
+
+		context "given testnet address" do
+
+			it "converts it to scriptPubKey" do
+				script = s.address_to_script test
+				expect(script[0..3]).to eql 'a914'
+				expect(script[-2..-1]).to eql '87'
+			end
+		end
+	end
+
+	context ".script_to_address" do
+
+		context "given pubkey script" do
+
+			it "converts it to address" do
+				script = s.address_to_script addr
+				result = s.script_to_address script
+				expect(result).to eql addr
+			end
+		end
+
+		context "given multisig script" do
+
+			it "converts it to multi-address" do
+				script = s.address_to_script multi
+				result = s.script_to_address script
+				expect(result).to eql multi
+			end
+		end
+
+		context "given testnet script" do
+
+			it "returns testnet address" do
+				script = s.address_to_script multi
+				result = s.script_to_address(script, 111)
+				expect(result).to eql test
 			end
 		end
 	end

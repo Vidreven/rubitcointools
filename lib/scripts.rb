@@ -46,21 +46,21 @@ class Scripts
 		script += encode_op_n(keys.length)
 		script += "ae"
 
-		return script
+		script
 	end
 
 	def address_to_script(addr)
 		if addr[0] == '3' || addr[0] == '2'
-			return mk_scripthash_script(addr)
+			mk_scripthash_script(addr)
 		else
-			return mk_pubkey_script(addr)
+			mk_pubkey_script(addr)
 		end
 	end
 
 	def script_to_address(script, vbyte=0)
 		if (script[0..5] == '76a914' && script[-4..-1] == '88ac' && script.length == 50)
 			hextobin = @sp.changebase(script[6..-5], 16, 256)
-			return @sp.bin_to_b58check(hextobin, vbyte)
+			@sp.bin_to_b58check(hextobin, vbyte)
 		else
 			if [111, 196].include? vbyte
 				#Testnet
@@ -71,7 +71,7 @@ class Scripts
 
 			hextobin = @sp.changebase(script[4..-3], 16, 256)
 			# BIP0016 scripthash addresses
-			return @sp.bin_to_b58check(hextobin, scripthash_byte)
+			@sp.bin_to_b58check(hextobin, scripthash_byte)
 		end
 	end
 end

@@ -4,7 +4,7 @@ describe Specials do
 
 	s = Specials.new
 
-	describe "#code_strings" do
+	describe ".code_strings" do
 
 		context "given a valid input" do
 
@@ -18,7 +18,7 @@ describe Specials do
 		end
 	end
 
-	describe "#decode" do
+	describe ".decode" do
 
 		context "given a base 10 string" do
 
@@ -69,7 +69,7 @@ describe Specials do
 		end
 	end
 
-	describe "#encode" do
+	describe ".encode" do
 	
 		context "given a base 10 string" do
 		
@@ -105,7 +105,7 @@ describe Specials do
 		end
 	end
 
-	describe "#changebase" do
+	describe ".changebase" do
 
 		context "given an empty string" do
 
@@ -188,7 +188,7 @@ describe Specials do
 		end
 	end
 
-	context "#bin_to_b58check" do
+	context ".bin_to_b58check" do
 
 		context "given a string" do
 
@@ -200,7 +200,7 @@ describe Specials do
 				expect(result).not_to eql ''
 			end
 
-			it "start with 1" do
+			it "starts with 1" do
 				expect(result[0]).to eql '1'
 			end
 
@@ -211,7 +211,7 @@ describe Specials do
 		end
 	end
 
-	context "#b58check_to_bin" do
+	context ".b58check_to_bin" do
 
 		context "given a b58check string" do
 
@@ -223,7 +223,7 @@ describe Specials do
 		end
 	end
 
-	context "#b58check_to_hex" do
+	context ".b58check_to_hex" do
 
 		context "given a b58check string" do
 
@@ -247,7 +247,7 @@ describe Specials do
 		end
 	end
 
-	context "#hash_to_int" do
+	context ".hash_to_int" do
 
 		context "given a charlen 40 string" do
 
@@ -284,7 +284,7 @@ describe Specials do
 		end
 	end
 
-	context "#change_endianness" do
+	context ".change_endianness" do
 
 		context "given a string" do
 

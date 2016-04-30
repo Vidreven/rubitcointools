@@ -5,7 +5,7 @@ describe ECC do
 
 	e = ECC.new
 
-	context "#inv" do
+	context ".inv" do
 
 		context "given a number in a filed" do
 
@@ -24,7 +24,7 @@ describe ECC do
 		end
 	end
 
-	context "#reject?" do
+	context ".reject?" do
 
 		context "given a point on a curve" do
 
@@ -40,7 +40,7 @@ describe ECC do
 		end
 	end
 
-	context "#to_jacobian" do
+	context ".to_jacobian" do
 
 		context "given a point on a curve" do
 
@@ -51,7 +51,7 @@ describe ECC do
 		end
 	end
 
-	context "#from_jacobian" do
+	context ".from_jacobian" do
 
 		context "given a point in jacobian form" do
 
@@ -62,7 +62,7 @@ describe ECC do
 		end
 	end
 
-	context "#pow" do
+	context ".pow" do
 
 		context "given base and exponent" do
 
@@ -80,7 +80,7 @@ describe ECC do
 		end
 	end
 
-	context "#legendre" do
+	context ".legendre" do
 
 		context "given number and modulus" do
 
@@ -105,7 +105,7 @@ describe ECC do
 		end
 	end
 
-	context "#on_curve?" do
+	context ".on_curve?" do
 
 		context "given an invalid point" do
 
@@ -124,7 +124,7 @@ describe ECC do
 		end
 	end
 
-	context "#get_y" do
+	context ".get_y" do
 
 		context "given x-coordinate" do
 
@@ -142,7 +142,7 @@ describe ECC do
 		end
 	end
 
-	context "#format_point" do
+	context ".format_point" do
 
 		context "given x-coordinate outside Fp" do
 			it "adds P to it" do
@@ -173,7 +173,7 @@ describe ECC do
 		end
 	end
 
-	context "#jacobian_double" do
+	context ".jacobian_double" do
 
 		context "given only x-coordinate" do
 
@@ -212,7 +212,7 @@ describe ECC do
 		end
 	end
 
-	context "#jacobian_add" do
+	context ".jacobian_add" do
 
 		context "given two points" do
 
@@ -232,7 +232,7 @@ describe ECC do
 		end
 	end
 
-	context "#jacobian_multiply" do
+	context ".jacobian_multiply" do
 
 		context "given an invalid point" do
 
@@ -265,7 +265,7 @@ describe ECC do
 		end
 	end
 
-	context "#fast_add" do
+	context ".fast_add" do
 
 		context "given two points on curve" do
 
@@ -277,7 +277,7 @@ describe ECC do
 		end
 	end
 
-	context "#fast_multiply" do
+	context ".fast_multiply" do
 
 		context "given a point on curve" do
 

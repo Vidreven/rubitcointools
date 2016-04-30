@@ -14,7 +14,7 @@ describe Blocks do
 
 	header = {version: version, prevhash: prevhash, merkle_root: merkle_root, timestamp: timestamp, bits: bits, nonce: nonce, hash: hash}
 
-	context "#serialize_header" do
+	context ".serialize_header" do
 
 		context "given deserialized block header" do
 
@@ -38,7 +38,7 @@ describe Blocks do
 		end
 	end
 
-	context "#deserialize_header" do
+	context ".deserialize_header" do
 
 		context "given serialized header" do
 
@@ -57,7 +57,7 @@ describe Blocks do
 		end
 	end
 
-	context "#mk_merkle_proof" do
+	context ".mk_merkle_proof" do
 
 		context "given transaction hashes" do
 

@@ -4,7 +4,7 @@ describe Arbitrary do
 
 	a = Arbitrary.new
 	
-	context "#random_string" do
+	context ".random_string" do
 
 		context "given zero length" do
 
@@ -29,7 +29,7 @@ describe Arbitrary do
 		end
 	end
 
-	context "#seed" do
+	context ".seed" do
 
 		it "returns random seed" do
 			s1 = a.seed
@@ -38,7 +38,7 @@ describe Arbitrary do
 		end
 	end
 
-	context "#xorshift" do
+	context ".xorshift" do
 
 		it "returns random number" do
 			s1 = a.xorshift
@@ -47,7 +47,7 @@ describe Arbitrary do
 		end
 	end
 
-	context "#get_entropy" do
+	context ".get_entropy" do
 
 		it "returns bytes of entropy" do
 			e1 = a.get_entropy

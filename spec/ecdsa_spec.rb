@@ -16,7 +16,7 @@ describe ECDSA do
 	x = '044f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871a'
 	y = 'a385b6b1b8ead809ca67454d9683fcf2ba03456d6fe2c4abe2b07f0fbdbb2f1c1'
 
-	context "#encode_sig" do
+	context ".encode_sig" do
 
 		context "given signature" do
 
@@ -73,7 +73,7 @@ describe ECDSA do
 		end
 	end
 
-	context "#decode_sig" do
+	context ".decode_sig" do
 
 		context	"given DER encoded signature" do
 
@@ -84,7 +84,7 @@ describe ECDSA do
 		end
 	end
 
-	context "#bip66?" do
+	context ".bip66?" do
 
 		context "given ECDSA signature" do
 
@@ -114,7 +114,7 @@ describe ECDSA do
 		end
 	end
 
-	context "#deterministic_generate_k" do
+	context ".deterministic_generate_k" do
 
 		context "given message and private key" do
 
@@ -135,7 +135,7 @@ describe ECDSA do
 		end
 	end
 
-	context "#ecdsa_raw_sign" do
+	context ".ecdsa_raw_sign" do
 
 		context "given a message" do
 
@@ -159,7 +159,7 @@ describe ECDSA do
 		end
 	end
 
-	context "#ecdsa_raw_verify" do
+	context ".ecdsa_raw_verify" do
 
 		context "given message and signature" do
 
@@ -171,7 +171,7 @@ describe ECDSA do
 		end
 	end
 
-	context "#ecdsa_raw_recover" do
+	context ".ecdsa_raw_recover" do
 
 		context "given message and signature" do
 

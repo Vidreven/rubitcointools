@@ -78,7 +78,7 @@ class Keys
 			x = @sp.decode(pub[1..32], 256)
 			y = @e.get_y x
 			raise ArgumentError, "Invalid key" if y == -1
-			y = pub[0] == 2 ? y : ECC::P - y
+			y = pub[0] == 3.chr ? y : ECC::P - y
 			return [x, y]
 		elsif format == :hex
 			return [@sp.decode(pub[2..65], 16), @sp.decode(pub[66..130], 16)]

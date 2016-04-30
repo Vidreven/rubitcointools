@@ -5,7 +5,7 @@ describe Hashes do
 	
 	h = Hashes.new
 
-	describe "#bin_hash160" do
+	describe ".bin_hash160" do
 
 		context "given a string input" do
 
@@ -21,7 +21,7 @@ describe Hashes do
 		end
 	end
 
-	describe "#hash160" do
+	describe ".hash160" do
 
 		context "given a string input" do
 
@@ -37,7 +37,7 @@ describe Hashes do
 		end
 	end
 
-	describe "#bin_sha256" do
+	describe ".bin_sha256" do
 
 		context "given a string input" do
 
@@ -53,7 +53,7 @@ describe Hashes do
 		end
 	end
 
-	describe "#bin_dbl_sha256" do
+	describe ".bin_dbl_sha256" do
 
 		context "given a string input" do
 
@@ -73,7 +73,7 @@ describe Hashes do
 		end
 	end
 
-	describe "#sha256" do
+	describe ".sha256" do
 		context "given a string input" do
 
 			result = h.sha256 '1'
@@ -88,7 +88,7 @@ describe Hashes do
 		end
 	end
 
-	describe "#bin_slowsha" do
+	describe ".bin_slowsha" do
 
 		context "given a string input" do
 
@@ -102,17 +102,17 @@ describe Hashes do
 				expect(result.size).to eql 32
 			end
 
-			it "should not equal bin_sha256" do
+			it "does not equal bin_sha256" do
 				expect(result).not_to eql h.bin_sha256 '1'
 			end
 
-			it "should not equal bin_dbl_sha256" do
+			it "does not equal bin_dbl_sha256" do
 				expect(result).not_to eql h.bin_dbl_sha256 '1'
 			end
 		end
 	end
 
-	describe "#slowsha" do
+	describe ".slowsha" do
 
 		context "given a string input" do
 

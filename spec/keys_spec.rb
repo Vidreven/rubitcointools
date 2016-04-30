@@ -16,7 +16,7 @@ describe Keys do
 	privkeys = [decimal, 1.chr * 32, 1.chr * 33, '1' * 64, '1' * 64 + '01', '5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ',
 			'KwntMbt59tTsj8xqpqYqRRWufyjGunvhSyeMo3NTYpFYzZbXJ5Hp']
 
-	context "#get_pubkey_format" do
+	context ".get_pubkey_format" do
 
 		context "given invalid key format" do
 
@@ -82,7 +82,7 @@ describe Keys do
 		end
 	end
 
-	context "#decode_pubkey" do
+	context ".decode_pubkey" do
 
 		pubkeys.each do |key|
 
@@ -96,7 +96,7 @@ describe Keys do
 		end
 	end
 
-	context "#encode_pubkey" do
+	context ".encode_pubkey" do
 
 		pubkeys.each do |key|
 			context "given key in #{k.get_pubkey_format key} format" do
@@ -112,7 +112,7 @@ describe Keys do
 		end
 	end
 
-	context "#get_privkey_format" do
+	context ".get_privkey_format" do
 
 		context "given integer key" do
 
@@ -165,7 +165,7 @@ describe Keys do
 		end
 	end
 
-	context "#decode_privkey" do
+	context ".decode_privkey" do
 
 		privkeys.each do |key|
 
@@ -179,7 +179,7 @@ describe Keys do
 		end
 	end
 
-	context "#encode_privkey" do
+	context ".encode_privkey" do
 
 		privkeys.each do |key|
 			context "given key in #{k.get_privkey_format key} format" do
@@ -195,7 +195,7 @@ describe Keys do
 		end
 	end
 
-	context "#add_pubkeys" do
+	context ".add_pubkeys" do
 
 		pubkeys.each do |key1|
 
@@ -212,7 +212,7 @@ describe Keys do
 		end
 	end
 
-	context "#add_privkeys" do
+	context ".add_privkeys" do
 
 		privkeys.each do |key1|
 
@@ -229,7 +229,7 @@ describe Keys do
 		end
 	end
 
-	context "#compress" do
+	context ".compress" do
 
 		formats = {
 			decimal: :hex_compressed,
@@ -271,7 +271,7 @@ describe Keys do
 		end
 	end
 
-	context "#decompress" do
+	context ".decompress" do
 
 		keys = pubkeys[0..-3]
 
@@ -298,7 +298,7 @@ describe Keys do
 		end
 	end
 
-	context "#privkey_to_pubkey" do
+	context ".privkey_to_pubkey" do
 
 		context "given an invalid key" do
 
@@ -322,7 +322,7 @@ describe Keys do
 		end
 	end
 
-	context "#pubkey_to_address" do
+	context ".pubkey_to_address" do
 
 		pubkeys.each do |key|
 
@@ -338,7 +338,7 @@ describe Keys do
 		end
 	end
 
-	context '#privkey_to_address' do
+	context '.privkey_to_address' do
 
 		privkeys.each do |key|
 
@@ -354,7 +354,7 @@ describe Keys do
 		end
 	end
 
-	context "#random_key" do
+	context ".random_key" do
 
 		it "returns 64 char string" do
 			string = k.random_key
