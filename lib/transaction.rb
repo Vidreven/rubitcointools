@@ -14,7 +14,6 @@ class Transaction
 	end
 
 	def deserialize(tx)
-		#txcpy = deepcopy(tx)
 		txcpy = tx.clone
 		obj = {ins: [], outs: []}
 		obj[:version] = @sp.change_endianness(read_and_modify!(4, txcpy))
@@ -40,7 +39,7 @@ class Transaction
 		}
 		obj[:locktime] = @sp.change_endianness(read_and_modify!(4, txcpy))
 
-		return obj
+		obj
 	end
 
 	def serialize(txobj)
@@ -69,7 +68,7 @@ class Transaction
 
 		raw += @sp.change_endianness(txobj[:locktime])
 
-		return raw
+		raw
 	end
 
 	# Hashing transactions for signing
@@ -77,7 +76,7 @@ class Transaction
 	SIGHASH_ALL = 1
 	SIGHASH_NONE = 2
 	SIGHASH_SINGLE = 3
-	SIGHASH_ANYONECANPAY = 0x81
+	SIGHASH_ANYONECANPAY = 0x80
 
 	
 	# Prepares the transaction for hashing. Each input has to be handled separately.
@@ -85,11 +84,13 @@ class Transaction
 	def signature_form(tx, i, scriptPubKey, hashcode=SIGHASH_ALL)
 		i, hashcode = i.to_i, hashcode.to_i
 
-		if tx.respond_to? :each_char
-			return serialize(signature_form(deserialize(tx), i, scriptPubKey, hashcode))
-		end
+		raise ArgumentError, "i > #inputs" if i > tx[:ins].size
 
-		newtx = tx.clone #deepcopy(tx)
+		# if tx.respond_to? :each_char
+		# 	return serialize(signature_form(deserialize(tx), i, scriptPubKey, hashcode))
+		# end
+
+		newtx = tx.clone
 
 		newtx[:ins].each do |input|
 			input[:scriptSig] = ""
@@ -97,16 +98,18 @@ class Transaction
 
 		newtx[:ins][i][:scriptSig] = scriptPubKey
 
-		if hashcode == SIGHASH_NONE
+		if hashcode & 0x1f == SIGHASH_NONE
 			newtx[:outs] = []
-		elsif hashcode == SIGHASH_SINGLE
+		elsif hashcode & 0x1f == SIGHASH_SINGLE
 			newtx[:outs].each_index do |index|
 				next if index == i
 				newtx[:outs][index][:value] = 2**64 - 1
 				newtx[:outs][index][:scriptPubKey] = ""
 				#newtx[:ins][index][:sequence] = '00000000'
 			end
-		elsif hashcode == SIGHASH_ANYONECANPAY
+		end
+
+		if hashcode & SIGHASH_ANYONECANPAY == SIGHASH_ANYONECANPAY
 			newtx[:ins] = [newtx[:ins][i]]
 		end
 
