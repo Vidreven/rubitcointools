@@ -29,27 +29,32 @@ describe Arbitrary do
 		end
 	end
 
-	context ".seed" do
+	# context ".seed" do
 
-		it "returns random seed" do
-			s1 = a.seed
-			s2 = a.seed
-			expect(s1).not_to eql s2
-		end
-	end
+	# 	it "returns random seed" do
+	# 		s1 = a.seed
+	# 		s2 = a.seed
+	# 		expect(s1).not_to eql s2
+	# 	end
+	# end
 
-	context ".xorshift" do
+	# context ".xorshift" do
 
-		it "returns random number" do
-			s1 = a.xorshift
-			s2 = a.xorshift
-			expect(s1).not_to eql s2
-		end
-	end
+	# 	it "returns random number" do
+	# 		s1 = a.xorshift
+	# 		s2 = a.xorshift
+	# 		expect(s1).not_to eql s2
+	# 	end
+	# end
 
 	context ".get_entropy" do
 
 		it "returns bytes of entropy" do
+			e = a.get_entropy
+			expect(e.size).to eql 128
+		end
+
+		it "doesn't return the same string twice" do
 			e1 = a.get_entropy
 			e2 = a.get_entropy
 			expect(e1).not_to eql e2
