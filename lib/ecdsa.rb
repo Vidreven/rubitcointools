@@ -97,7 +97,10 @@ class ECDSA
 		s = @e.inv(k, ECC::N) * (z + r * @k.decode_privkey(priv)) % ECC::N
 		s = s * 2 < ECC::N ? s : ECC::N - s # BIP62 low s value
 
-		return 30 + (y % 2), r.to_s(16), s.to_s(16)
+		r = @sp.encode(r, 16, 64)
+		s = @sp.encode(s, 16, 64)
+
+		return 30 + (y % 2), r, s
 	end
 
 	# Receives r & s in hexadecimal format
