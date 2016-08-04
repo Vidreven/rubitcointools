@@ -299,4 +299,29 @@ describe Specials do
 			end
 		end
 	end
+
+	context ".random_string" do
+
+		context "given zero length" do
+
+			it "returns empty string" do
+				string = s.random_string 0
+				expect(string).to eql ''
+			end
+		end
+
+		context "given non-zero length string" do
+
+			it "returns a byte-string of given length" do
+				string = s.random_string 10
+				expect(string.bytesize).to eql 10
+			end
+
+			it "returns unique strings" do
+				string1 = s.random_string 10
+				string2 = s.random_string 10
+				expect(string1).not_to eql string2
+			end
+		end
+	end
 end

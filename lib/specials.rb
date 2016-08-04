@@ -117,4 +117,8 @@ class Specials
 	def change_endianness(hex_string)
 		return [hex_string].pack('H*').reverse.unpack('H*')[0]
 	end
+
+	def random_string(length)
+		return SecureRandom.random_bytes length
+	end
 end
