@@ -113,7 +113,7 @@ class Transaction
 			newtx[:ins] = [newtx[:ins][i]]
 		end
 
-		return newtx
+		newtx
 	end
 
 	# def bin_txhash(tx, hashcode='None')
@@ -132,31 +132,31 @@ class Transaction
 		hashcode = @sp.change_endianness(hashcode)
 		result = @h.bin_dbl_sha256(tx + hashcode)
 
-		return @sp.change_endianness(result)
+		result
 	end
 
 	def txhash(tx, hashcode=nil)
-		return @sp.changebase(bin_txhash(tx, hashcode), 256, 16)
+		@sp.changebase(bin_txhash(tx, hashcode), 256, 16)
 	end
 
 	# Signs the transaction, appends the hashcode and encodes it into DER format.
 	def ecdsa_tx_sign(tx, priv, hashcode=SIGHASH_ALL)
 		rawsig = @dsa.ecdsa_raw_sign(bin_txhash(tx, hashcode), priv)
-		return @dsa.encode_sig(*rawsig) + @sp.encode(hashcode, 16, 2)
+		@dsa.encode_sig(*rawsig) + hashcode.to_s.rjust(2, '0') #@sp.encode(hashcode, 16, 2)
 	end
 
 	def ecdsa_tx_verify(tx, sig, pub, hashcode=SIGHASH_ALL)
-		return @dsa.ecdsa_raw_verify(bin_txhash(tx, hashcode), @dsa.decode_sig(sig), pub)
+		@dsa.ecdsa_raw_verify(bin_txhash(tx, hashcode), @dsa.decode_sig(sig), pub)
 	end
 
 	# recovers pubkey
 	# def ecdsa_tx_recover(tx, sig, hashcode=SIGHASH_ALL)
 	# 	z = bin_txhash(tx, hashcode)
-	# 	v, r, s = @dsa.decode_sig(sig)
+	# 	v, r, s = @dsa.decode_sig sig
 
 	# 	left, right = @dsa.ecdsa_raw_recover(z, [v, r, s])
 
-	# 	return @k.encode_pubkey([left, right], 'hex')
+	# 	@k.encode_pubkey([left, right], :hex)
 	# end
 
 	# Signing and verifying
@@ -172,7 +172,7 @@ class Transaction
 
 		# u scriptSig ide scriptPubKey transakcije koju želimo potrošiti (ali nije nužno)
 		signing_tx = signature_form(tx, i, @sc.mk_pubkey_script(address), hashcode)
-		signing_tx = serialize(signing_tx) # Samo ako prethodno nije serijalizirana
+		signing_tx = serialize signing_tx # Samo ako prethodno nije serijalizirana
 		sig = ecdsa_tx_sign(signing_tx, priv, hashcode)
 
 		txobj[:ins][i][:scriptSig] = (sig.length / 2).to_s(16) + sig + (pub.length / 2).to_s(16) + pub
@@ -199,6 +199,7 @@ class Transaction
 	# script =? pubKeyhash
 	def multisign(tx, i, script, priv, hashcode=SIGHASH_ALL)
 		modtx = signature_form(tx, i, script, hashcode)
+		modtx = serialize modtx
 		return ecdsa_tx_sign(modtx, priv, hashcode)
 	end
 

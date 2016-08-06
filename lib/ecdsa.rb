@@ -106,6 +106,7 @@ class ECDSA
 	# Receives r & s in hexadecimal format
 	def ecdsa_raw_verify(msghash, vrs, pub)
 		v, r, s = vrs
+
 		w = @e.inv(s.to_i(16), ECC::N)
 		z = @sp.hash_to_int(msghash)
 
@@ -113,7 +114,7 @@ class ECDSA
 
 		x, y = @e.fast_add(@e.fast_multiply(ECC::G, u1), @e.fast_multiply(@k.decode_pubkey(pub), u2))
 
-		return r.to_i(16) == x
+		r.to_i(16) == (x % ECC::N)
 	end
 
 	def ecdsa_raw_recover(msghash, vrs)
@@ -124,12 +125,10 @@ class ECDSA
 		x = r.to_i(16)
 		y = @e.get_y x
 		# xcubedaxb = (x*x*x + ECC::A*x + ECC::B)
-		# beta = @e.pow(xcubedaxb, (ECC::P+1)/4, ECC::P)
-		# y = beta % 2 == 1 ? beta : (ECC::P - beta)
 
 		# If xcubedaxb is not a quadratic residue, then r cannot be the x coord
     	# for a point on the curve, and so the sig is invalid
-		return false if y == -1 #(xcubedaxb - y*y) % ECC::P != 0
+		return false if y == -1
 
 		z = @sp.hash_to_int msghash
 		gz = @e.fast_multiply(ECC::G, (ECC::N - z) % ECC::N)

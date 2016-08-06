@@ -5,6 +5,10 @@ describe Transaction do
 	t = Transaction.new
 	sp = Specials.new
 
+	priv = '1' * 64
+	x = '044f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871a'
+	y = 'a385b6b1b8ead809ca67454d9683fcf2ba03456d6fe2c4abe2b07f0fbdbb2f1c1'
+
 	version = '01000000'
 	hash11 = '75db462b20dd144dd143f5314270569c0a61191f1378c164ce4262e9bff1b079'
 	hash231 = 'e00bd5584971a43a0245216613fd7c42277d0cedc503c11c43ba025f4477f728'
@@ -233,6 +237,343 @@ describe Transaction do
 					expect(result[:outs][1][:value]).to eql sp.change_endianness value232
 					expect(result[:outs][1][:scriptPubKey]).to eql scriptPubKey232[2..-1]
 				end
+			end
+		end
+	end
+
+	context ".bin_txhash" do
+
+		context "given 1-1 transaction" do
+
+			context "For SIGHASH_ALL" do
+				
+				it "raw hashes transaction" do
+					result = t.bin_txhash tx11
+					expect(result.size).to eql 32
+				end
+			end
+
+			context "For SIGHASH_NONE" do
+				
+				it "raw hashes transaction" do
+					result = t.bin_txhash(tx11, 2)
+					expect(result.size).to eql 32
+				end
+			end
+
+			context "For SIGHASH_SINGLE" do
+				
+				it "raw hashes transaction" do
+					result = t.bin_txhash(tx11, 3)
+					expect(result.size).to eql 32
+				end
+			end
+
+			context "For SIGHASH_ALL + SIGHASH_ANYONECANPAY" do
+				
+				it "raw hashes transaction" do
+					result = t.bin_txhash(tx11, 81)
+					expect(result.size).to eql 32
+				end
+			end
+
+			context "For SIGHASH_NONE + SIGHASH_ANYONECANPAY" do
+				
+				it "raw hashes transaction" do
+					result = t.bin_txhash(tx11, 82)
+					expect(result.size).to eql 32
+				end
+			end
+
+			context "For SIGHASH_SINGLE + SIGHASH_ANYONECANPAY" do
+				
+				it "raw hashes transaction" do
+					result = t.bin_txhash(tx11, 83)
+					expect(result.size).to eql 32
+				end
+			end
+		end
+	end
+
+	context ".txhash" do
+
+		context "given 2-3 transaction" do
+
+			context "For SIGHASH_ALL" do
+
+				it "hashes transaction" do
+					result = t.txhash tx23
+					expect(result.size).to eql 64
+				end
+			end
+
+			context "For SIGHASH_NONE" do
+
+				it "hashes transaction" do
+					result = t.txhash(tx23, 2)
+					expect(result.size).to eql 64
+				end
+			end
+
+			context "For SIGHASH_SINGLE" do
+
+				it "hashes transaction" do
+					result = t.txhash(tx23, 3)
+					expect(result.size).to eql 64
+				end
+			end
+
+			context "For SIGHASH_ALL + SIGHASH_ANYONECANPAY" do
+
+				it "hashes transaction" do
+					result = t.txhash(tx23, 81)
+					expect(result.size).to eql 64
+				end
+			end
+
+			context "For SIGHASH_NONE + SIGHASH_ANYONECANPAY" do
+
+				it "hashes transaction" do
+					result = t.txhash(tx23, 82)
+					expect(result.size).to eql 64
+				end
+			end
+
+			context "For SIGHASH_SINGLE + SIGHASH_ANYONECANPAY" do
+
+				it "hashes transaction" do
+					result = t.txhash(tx23, 83)
+					expect(result.size).to eql 64
+				end
+			end
+		end
+	end
+
+	context ".ecdsa_tx_sign" do
+
+		context "For SIGHASH_ALL" do
+
+			it "signs transaction" do
+				result = t.ecdsa_tx_sign(tx11, priv)
+				expect(ECDSA.new.bip66? result[0..-3]).to be true
+				expect(result[-2..-1]).to eql '01'
+			end
+		end
+
+		context "For SIGHASH_NONE" do
+
+			it "signs transaction" do
+				result = t.ecdsa_tx_sign(tx11, priv, 2)
+				expect(ECDSA.new.bip66? result[0..-3]).to be true
+				expect(result[-2..-1]).to eql '02'
+			end
+		end
+
+		context "For SIGHASH_SINGLE" do
+
+			it "signs transaction" do
+				result = t.ecdsa_tx_sign(tx11, priv, 3)
+				expect(ECDSA.new.bip66? result[0..-3]).to be true
+				expect(result[-2..-1]).to eql '03'
+			end
+		end
+
+		context "For SIGHASH_ALL + SIGHASH_ANYONECANPAY" do
+			
+			it "signs transaction" do
+				result = t.ecdsa_tx_sign(tx23, priv, 81)
+				expect(ECDSA.new.bip66? result[0..-3]).to be true
+				expect(result[-2..-1]).to eql '81'
+			end
+		end
+
+		context "For SIGHASH_NONE + SIGHASH_ANYONECANPAY" do
+			
+			it "signs transaction" do
+				result = t.ecdsa_tx_sign(tx23, priv, 82)
+				expect(ECDSA.new.bip66? result[0..-3]).to be true
+				expect(result[-2..-1]).to eql '82'
+			end
+		end
+
+		context "For SIGHASH_SINGLE + SIGHASH_ANYONECANPAY" do
+			
+			it "signs transaction" do
+				result = t.ecdsa_tx_sign(tx23, priv, 83)
+				expect(ECDSA.new.bip66? result[0..-3]).to be true
+				expect(result[-2..-1]).to eql '83'
+			end
+		end
+	end
+
+	context ".ecdsa_tx_verify" do
+
+		context "given 1-1 transaction" do
+
+			context "For SIGHASH_ALL" do
+
+				it "verifies transaction" do
+					signature = t.ecdsa_tx_sign(tx11, priv)
+					result = t.ecdsa_tx_verify(tx11, signature, x+y)
+					expect(result).to be true
+				end
+			end
+
+			context "For SIGHASH_NONE" do
+
+				it "verifies transaction" do
+					signature = t.ecdsa_tx_sign(tx11, priv, 2)
+					result = t.ecdsa_tx_verify(tx11, signature, x+y, 2)
+					expect(result).to be true
+				end
+			end
+
+			context "For SIGHASH_SINGLE" do
+
+				it "verifies transaction" do
+					signature = t.ecdsa_tx_sign(tx11, priv, 3)
+					result = t.ecdsa_tx_verify(tx11, signature, x+y, 3)
+					expect(result).to be true
+				end
+			end
+		end
+
+		context "given 2-3 transaction" do
+
+			context "For SIGHASH_ALL" do
+
+				it "verifies transaction" do
+					signature = t.ecdsa_tx_sign(tx23, priv)
+					result = t.ecdsa_tx_verify(tx23, signature, x+y)
+					expect(result).to be true
+				end
+			end
+
+			context "For SIGHASH_NONE" do
+
+				it "verifies transaction" do
+					signature = t.ecdsa_tx_sign(tx23, priv, 2)
+					result = t.ecdsa_tx_verify(tx23, signature, x+y, 2)
+					expect(result).to be true
+				end
+			end
+
+			context "For SIGHASH_SINGLE" do
+
+				it "verifies transaction" do
+					signature = t.ecdsa_tx_sign(tx23, priv, 3)
+					result = t.ecdsa_tx_verify(tx23, signature, x+y, 3)
+					expect(result).to be true
+				end
+			end
+
+			context "For SIGHASH_ALL + SIGHASH_ANYONECANPAY" do
+
+				it "verifies transaction" do
+					signature = t.ecdsa_tx_sign(tx23, priv, 81)
+					result = t.ecdsa_tx_verify(tx23, signature, x+y, 81)
+					expect(result).to be true
+				end
+			end
+
+			context "For SIGHASH_NONE + SIGHASH_ANYONECANPAY" do
+
+				it "verifies transaction" do
+					signature = t.ecdsa_tx_sign(tx23, priv, 82)
+					result = t.ecdsa_tx_verify(tx23, signature, x+y, 82)
+					expect(result).to be true
+				end
+			end
+
+			context "For SIGHASH_SINGLE + SIGHASH_ANYONECANPAY" do
+
+				it "verifies transaction" do
+					signature = t.ecdsa_tx_sign(tx23, priv, 83)
+					result = t.ecdsa_tx_verify(tx23, signature, x+y, 83)
+					expect(result).to be true
+				end
+			end
+		end
+	end
+
+	# context ".ecdsa_tx_recover" do
+
+	# 	context "given transaction and signature" do
+
+	# 		context "For SIGHASH_ALL" do
+
+	# 			it "finds pubkey" do
+	# 				signature = t.ecdsa_tx_sign(tx23, priv)
+	# 				pubkey = t.ecdsa_tx_recover(tx23, signature)
+	# 				expect(pubkey).to eql x+y
+	# 			end
+	# 		end
+
+	# 		context "For SIGHASH_NONE" do
+
+	# 			it "finds pubkey" do
+	# 				signature = t.ecdsa_tx_sign(tx23, priv, 2)
+	# 				pubkey = t.ecdsa_tx_recover(tx23, signature, 2)
+	# 				expect(pubkey).to eql x+y
+	# 			end
+	# 		end
+
+	# 		context "For SIGHASH_SINGLE" do
+
+	# 			it "finds pubkey" do
+	# 				signature = t.ecdsa_tx_sign(tx23, priv, 3)
+	# 				pubkey = t.ecdsa_tx_recover(tx23, signature, 3)
+	# 				expect(pubkey).to eql x+y
+	# 			end
+	# 		end
+	# 	end
+	# end
+
+	context ".sign" do
+
+		context "given deserialized transaction input" do
+
+			i = 0;
+			tx = t.deserialize tx11
+
+			it "signs it" do
+				tr = t.sign(tx, i, priv)
+				sig = tr[:ins][0][:scriptSig][2..141]
+				expect(ECDSA.new.bip66?(sig)).to be true
+			end
+
+			it "signs the same every time" do
+				expect(t.sign(tx, i, priv)).to eql t.sign(tx, i, priv)
+			end
+		end
+	end
+
+	context "sign_all" do
+
+		context "given a serialized MIMO transaction" do
+
+			it "signs each input" do
+				tx = t.sign_all(tx23, priv)
+
+				sig0 = tx[:ins][0][:scriptSig][2..141]
+				expect(ECDSA.new.bip66?(sig0)).to be true
+
+				sig1 = tx[:ins][1][:scriptSig][2..143]
+				expect(ECDSA.new.bip66?(sig1)).to be true
+			end
+		end
+	end
+
+	context ".multisign" do
+
+		context "given a transaction" do
+
+			it "signs it" do
+				i = 0
+				tx = t.deserialize tx11
+				script = scriptPubKey11[2..-1]
+				sig = t.multisign(tx, i, script, priv)
+				expect(ECDSA.new.bip66?(sig[0..-3])).to be true
 			end
 		end
 	end

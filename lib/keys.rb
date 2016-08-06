@@ -1,7 +1,6 @@
 require_relative 'specials'
 require_relative 'ecc'
 require_relative 'hashes'
-require_relative 'arbitrary'
 
 class Keys
 
@@ -9,7 +8,6 @@ class Keys
 		@sp = Specials.new
 		@e = ECC.new
 		@h = Hashes.new
-		@a = Arbitrary.new
 	end
 
 	# Functions for handling pubkey and privkey formats
@@ -261,7 +259,7 @@ class Keys
 	# end
 
 	def random_key
-		entropy = @a.get_entropy
+		entropy = @sp.random_string 32
 
 		@h.slowsha(entropy)
 	end
