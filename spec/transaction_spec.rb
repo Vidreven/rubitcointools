@@ -577,4 +577,47 @@ describe Transaction do
 			end
 		end
 	end
+
+	context ".apply_multisignatures" do
+
+		context "given a deserialized multisig tx" do
+
+			it "appends signatures and scripts" do
+				script = "524104a882d414e478039cd5b52a92ffb13dd5e6bd4515497439dffd691a0f12af9575fa349b5694ed3155b136f" +
+					"09e63975a1700c9f4d4df849323dac06cf3bd6458cd41046ce31db9bdd543e72fe3039a1f1c047dab87037c36a669f" +
+					"f90e28da1848f640de68c2fe913d363a51154a0c62d7adea1b822d05035077418267b1a1379790187410411ffd36c7" +
+					"0776538d079fbae117dc38effafb33304af83ce4894589747aee1ef992f63280567f52f5ba870678b4ab4ff6c8ea60" +
+					"0bd217870a8b4f1f09f3a8e8353ae"
+				i = 0
+				priv1 = priv
+				priv2 = "2" * 64
+				priv3 = "3" * 64
+				scriptPK = scriptPubKey11[2..-1]
+
+				tx = t.deserialize tx11
+
+				sig1 = t.multisign(tx, i, scriptPK, priv1)
+				sig2 = t.multisign(tx, i, scriptPK, priv2)
+				sig3 = t.multisign(tx, i, scriptPK, priv3)
+
+				res = t.apply_multisignatures(tx11, i, script, [sig1])
+				sig = res[:ins][0][:scriptSig][3..142]
+				expect(ECDSA.new.bip66? sig).to be true
+
+				res = t.apply_multisignatures(tx11, i, script, [sig1, sig2, sig3])
+				sig = res[:ins][0][:scriptSig][3..142]
+				expect(ECDSA.new.bip66? sig).to be true
+
+				res = t.apply_multisignatures(tx11, i, script, sig1, sig2, sig3)
+				sig = res[:ins][0][:scriptSig][3..142]
+				expect(ECDSA.new.bip66? sig).to be true
+
+				sig = res[:ins][0][:scriptSig][147..286]
+				expect(ECDSA.new.bip66? sig).to be true
+
+				sig = res[:ins][0][:scriptSig][291..430]
+				expect(ECDSA.new.bip66? sig).to be true
+			end
+		end
+	end
 end
