@@ -231,20 +231,20 @@ class Transaction
 	end
 
 	def mkout(amount='546', scriptPubKey)
-		raise "Amount must be present" if amount.nil?
-		raise "Amount can't be empty" if amount.empty?
-		raise "Amount must be atleast 546 satoshi" if amount.to_i < 546
+		raise ArgumentError, "Amount must be present" if amount.nil?
+		raise ArgumentError, "Amount can't be empty" if amount.empty?
+		raise ArgumentError, "Amount must be atleast 546 satoshi" if amount.to_i < 546
 
-		raise "Script must be present" if scriptPubKey.nil?
-		raise "Script can't be empty" if scriptPubKey.empty?
-		raise "Invalid script" if scriptPubKey.size < 52
+		raise ArgumentError, "Script must be present" if scriptPubKey.nil?
+		raise ArgumentError, "Script can't be empty" if scriptPubKey.empty?
+		raise ArgumentError, "Invalid script" if scriptPubKey.size < 52
 
 		return {value: amount, scriptPubKey: scriptPubKey}
 	end
 
 	def mkin(hash, index, scriptSig, sequence='ffffffff')
-		raise "Input can't be empty" unless [hash, index, scriptSig].none? {|x| x.empty?}
-		raise "Invalid signature" unless @dsa.bip66? scriptSig
+		raise ArgumentError, "Input can't be empty" unless [hash, index, scriptSig].none? {|x| x.empty?}
+		raise ArgumentError, "Invalid signature" unless @dsa.bip66? scriptSig
 
 		outpoint = {outpoint: {hash: hash, index: index}}
 		outpoint[:scriptSig] = scriptSig

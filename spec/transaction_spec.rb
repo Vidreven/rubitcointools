@@ -620,4 +620,128 @@ describe Transaction do
 			end
 		end
 	end
+
+	context ".read_var_int" do
+
+		context "given a series of varints" do
+
+			it "reads them as ints" do
+
+				varint = %w(01 fc fdfd00 fdff01 fdfeff feffff0000 feffff0100 fefeffffff ffffffffff00000000)
+				int = [1, 252, 253, 511, 65534, 65535, 131071, 2**32 - 2, 2**32 - 1]
+
+				0.upto varint.size - 1 do |i|
+					expect(t.read_var_int! varint[i]).to eql int[i]
+				end
+			end
+		end
+	end
+
+	context ".read_var_string" do
+
+		context ".given a series of varstrings" do
+
+			it "reads them as strings" do
+
+				varstr = ['01h', 'fc' + 'h'*252, 'fdfd00' + 'h'*253, '00']
+				str = ['h', 'h'*252, 'h'*253, '']
+
+				0.upto varstr.size - 1 do |i|
+					expect(t.read_var_string! varstr[i]).to eql str[i]
+				end
+			end
+		end
+	end
+
+	context	".to_var_int" do
+
+		context "given a series of ints" do
+
+			it "converts them to varints" do
+
+				int = [0, 252, 253, 511, 65534, 65535, 131071, 2**32 - 2, 2**32 - 1]
+				varint = %w(00 fc fdfd00 fdff01 fdfeff feffff0000 feffff0100 fefeffffff ffffffffff00000000)
+
+				0.upto int.size - 1 do |i|
+					expect(t.to_var_int int[i]).to eql varint[i]
+				end
+			end
+		end
+	end
+
+	context ".to_var_str" do
+
+		context ".given a series of strings" do
+
+			it "convert them to varstrings" do
+
+				varstr = ['0101', 'fc' + '01'*252, 'fdfd00' + '01'*253, '00']
+				str = ['01', '01'*252, '01'*253, '']
+
+				0.upto str.size - 1 do |i|
+					expect(t.to_var_str str[i]).to eql varstr[i]
+				end
+			end
+		end
+	end
+
+	context ".mkout" do
+
+		context "given nil input" do
+
+			it "raises error" do
+				expect{t.mkout(nil, nil)}.to raise_error ArgumentError
+			end
+		end
+
+		context "given nil amount" do
+			it "raises error" do
+				expect{t.mkout('', nil)}.to raise_error ArgumentError
+			end
+		end
+
+		context "given too small amount" do
+			it "raises error" do
+				expect{t.mkout('500', nil)}.to raise_error ArgumentError
+			end
+		end
+
+		context "given nil script" do
+			it "raises error" do
+				expect{t.mkout('546', nil)}.to raise_error ArgumentError
+			end
+		end
+
+		context "given empty script" do
+			it "raises error" do
+				expect{t.mkout('546', '')}.to raise_error ArgumentError
+			end
+		end
+
+		context "given invalid script" do
+			it "raises error" do
+				expect{t.mkout('546', '19761488ac')}.to raise_error ArgumentError
+			end
+		end
+
+		context "given a valid script" do
+
+			it "creates a valid outpoint" do
+				output = t.mkout(scriptPubKey11)
+
+				expect(output[:value]).to eql '546'
+				expect(output[:scriptPubKey]).to eql scriptPubKey11
+			end
+		end
+
+		context "given a valid input" do
+
+			it "creates a valid outpoint" do
+				output = t.mkout('5000', scriptPubKey11)
+
+				expect(output[:value]).to eql '5000'
+				expect(output[:scriptPubKey]).to eql scriptPubKey11
+			end
+		end
+	end
 end
