@@ -230,21 +230,23 @@ class Transaction
 		return txobj
 	end
 
-	def mkout(amount='546', scriptPubKey)
+	def mkout(amount=546, scriptPubKey)
 		raise ArgumentError, "Amount must be present" if amount.nil?
-		raise ArgumentError, "Amount can't be empty" if amount.empty?
-		raise ArgumentError, "Amount must be atleast 546 satoshi" if amount.to_i < 546
+		#raise ArgumentError, "Amount can't be empty" if amount.empty?
+		raise ArgumentError, "Amount must be atleast 546 satoshi" if amount < 546
 
 		raise ArgumentError, "Script must be present" if scriptPubKey.nil?
 		raise ArgumentError, "Script can't be empty" if scriptPubKey.empty?
-		raise ArgumentError, "Invalid script" if scriptPubKey.size < 52
+		raise ArgumentError, "Invalid script" if scriptPubKey.size < 50
+
+		amount = amount.to_s(16).rjust(16, '0')
 
 		return {value: amount, scriptPubKey: scriptPubKey}
 	end
 
 	def mkin(hash, index, scriptSig, sequence='ffffffff')
 		raise ArgumentError, "Input can't be empty" unless [hash, index, scriptSig].none? {|x| x.empty?}
-		raise ArgumentError, "Invalid signature" unless @dsa.bip66? scriptSig
+		#raise ArgumentError, "Invalid signature" unless @dsa.bip66? scriptSig
 
 		outpoint = {outpoint: {hash: hash, index: index}}
 		outpoint[:scriptSig] = scriptSig
@@ -256,15 +258,15 @@ class Transaction
 	# Takes a list of input and output hashes
 	# in0, in1, ..., out0, out1, ...
 	def mktx(*args)
-		raise "Input can't be nil" if args[0].nil?
-		raise "Input can't be empty" if args[0].length == 0
-		raise "Invalid input" if args[0].length < 2
+		raise ArgumentError, "Input can't be nil" if args[0].nil?
+		raise ArgumentError, "Input can't be empty" if args[0].length == 0
+		raise ArgumentError, "Invalid input" if args[0].length < 2
 
-		tx = {version: '1', locktime: '0', ins: [], outs: []}
+		tx = {version: '00000001', locktime: '00000000', ins: [], outs: []}
 		args.each do |arg|
 			input?(arg) ? tx[:ins] << arg : tx[:outs] << arg
 		end
-
+		
 		return serialize(tx)
 	end
 

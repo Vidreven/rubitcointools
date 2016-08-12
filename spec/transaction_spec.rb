@@ -694,42 +694,42 @@ describe Transaction do
 			end
 		end
 
-		context "given nil amount" do
-			it "raises error" do
-				expect{t.mkout('', nil)}.to raise_error ArgumentError
-			end
-		end
+		# context "given nil amount" do
+		# 	it "raises error" do
+		# 		expect{t.mkout('', nil)}.to raise_error ArgumentError
+		# 	end
+		# end
 
 		context "given too small amount" do
 			it "raises error" do
-				expect{t.mkout('500', nil)}.to raise_error ArgumentError
+				expect{t.mkout(500, nil)}.to raise_error ArgumentError
 			end
 		end
 
 		context "given nil script" do
 			it "raises error" do
-				expect{t.mkout('546', nil)}.to raise_error ArgumentError
+				expect{t.mkout(546, nil)}.to raise_error ArgumentError
 			end
 		end
 
 		context "given empty script" do
 			it "raises error" do
-				expect{t.mkout('546', '')}.to raise_error ArgumentError
+				expect{t.mkout(546, '')}.to raise_error ArgumentError
 			end
 		end
 
 		context "given invalid script" do
 			it "raises error" do
-				expect{t.mkout('546', '19761488ac')}.to raise_error ArgumentError
+				expect{t.mkout(546, '19761488ac')}.to raise_error ArgumentError
 			end
 		end
 
 		context "given a valid script" do
 
-			it "creates a valid outpoint" do
+			it "creates a valid output" do
 				output = t.mkout(scriptPubKey11)
 
-				expect(output[:value]).to eql '546'
+				expect(output[:value]).to eql 546.to_s(16).rjust(16, '0')
 				expect(output[:scriptPubKey]).to eql scriptPubKey11
 			end
 		end
@@ -737,10 +737,107 @@ describe Transaction do
 		context "given a valid input" do
 
 			it "creates a valid outpoint" do
-				output = t.mkout('5000', scriptPubKey11)
+				output = t.mkout(5000, scriptPubKey11)
 
-				expect(output[:value]).to eql '5000'
+				expect(output[:value]).to eql 5000.to_s(16).rjust(16, '0')
 				expect(output[:scriptPubKey]).to eql scriptPubKey11
+			end
+		end
+	end
+
+	context ".mkin" do
+
+		context "given empty input" do
+
+			it "raises error" do
+				expect{t.mkin('all', 'some', '')}.to raise_error ArgumentError
+			end
+		end
+
+		# context "given invalid signature" do
+
+		# 	it "raises error" do
+		# 		expect{t.mkin('hash', 'index', '3045')}.to raise_error ArgumentError
+		# 	end
+		# end
+
+		context "given valid input" do
+
+			it "creates input point" do
+
+				input = t.mkin(hash11, index11, scriptSig11)
+				
+				expect(input[:outpoint][:hash]).to eql hash11
+
+				expect(input[:outpoint][:index]).to eql index11
+
+				expect(input[:scriptSig]).to eql scriptSig11
+
+				expect(input[:sequence]).to eql sequence
+			end
+		end
+	end
+
+	context "mktx" do
+
+		context "given nil input" do
+
+			it "raises error" do
+				expect{t.mktx(nil)}.to raise_error ArgumentError
+			end
+		end
+
+		context "given empty input" do
+
+			it "raises error" do
+				expect{t.mktx('')}.to raise_error ArgumentError
+			end
+		end
+
+		context "given too few arguments" do
+
+			it "raises error" do
+				expect{t.mktx('a')}.to raise_error ArgumentError
+				expect{t.mktx(['a'])}.to raise_error ArgumentError
+			end
+		end
+
+		context "given proper inputs and outputs" do
+
+			it "creates a valid transaction" do
+
+				output = t.mkout(5000, scriptPubKey11[2..-1])
+				input = t.mkin(hash11, index11, scriptSig11[2..-1])
+				tx = t.mktx(output, input)
+
+				ver = t.read_and_modify!(4, tx)
+				expect(ver).to eql version
+
+				sz = t.read_and_modify!(1, tx)
+				hash = t.read_and_modify!(32, tx)
+				expect(hash).to eql sp.change_endianness hash11
+
+				index = t.read_and_modify!(4, tx)
+				expect(index).to eql index11
+
+				sig = t.read_and_modify!(140, tx)
+				expect(sig).to eql scriptSig11
+
+				seq = t.read_and_modify!(4, tx)
+				expect(seq). to eql sequence
+
+				sz = t.read_and_modify!(1, tx)
+
+				val = t.read_and_modify!(8, tx)
+				expect(val).to eql sp.change_endianness 5000.to_s(16).rjust(16, '0')
+				
+				sz = t.read_and_modify!(1, tx)
+
+				scr = t.read_and_modify!(25, tx)
+				expect(scr).to eql scriptPubKey11[2..-1]
+				
+				lock = t.read_and_modify!(4, tx)
+				expect(lock).to eql locktime
 			end
 		end
 	end
