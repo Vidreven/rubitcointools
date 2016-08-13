@@ -4,7 +4,7 @@ require_relative 'specials'
 require_relative 'transaction'
 include Enumerable
  
-class BCI
+class Networking
 	
 	def initilize
 		@t = Transaction.new
