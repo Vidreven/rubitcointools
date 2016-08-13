@@ -5,6 +5,10 @@ require_relative 'transaction'
 include Enumerable
  
 class Networking
+
+	BASE_BCI = 'https://blockchain.info/'
+	BASE_BLOCKR = 'https://btc.blockr.io/api/v1/'
+	BASE_BLOCKR_TEST = 'https://tbtc.blockr.io/api/v1/'
 	
 	def initilize
 		@t = Transaction.new
@@ -45,7 +49,7 @@ class Networking
 		unspent = []
 
 		addrs.each do |a|
-			data = make_request('https://blockchain.info/unspent?active='+a)
+			data = make_request(BASE_BCI + 'unspent?active='+a)
 			next if data == 'No free outputs to spend'
 			hash = JSON.parse data
 			hash["unspent_outputs"].each do |output|
@@ -66,8 +70,8 @@ class Networking
 
 		network, addr_args = parse_addr_args(*args)
 
-		switch = network == "testnet" ? "t" : ""
-		blockr_url = "https://#{switch}btc.blockr.io/api/v1/address/unspent/"
+		switch = network == "testnet" ? BASE_BLOCKR_TEST : BASE_BLOCKR
+		blockr_url = switch + "address/unspent/"
 
 		result = make_request(blockr_url + addr_args.join(','))
 		data = (JSON.parse result)['data']
@@ -102,7 +106,7 @@ class Networking
 			offset = 0
 
 			while 1
-				result = make_request("https://blockchain.info/address/#{addr}?format=json&offset=#{offset}")
+				result = make_request(BASE_BCI + "address/#{addr}?format=json&offset=#{offset}")
 				data = JSON.parse result
 
 				transactions.concat(data["txs"])
@@ -147,12 +151,13 @@ class Networking
 	# Pushes a transaction to the network using https://blockchain.info/pushtx
 	def bci_pushtx(tx)
 		tx = @t.serialize tx unless tx.respond_to? :each_char
-		return make_request('https://blockchain.info/pushtx', 'tx=#{tx}')
+		return make_request(BASE_BCI + 'pushtx', 'tx=#{tx}')
 	end
 
 	def blockr_pushtx(tx, network="btc")
-		switch = network == "testnet" ? "t" : ""
-		blockr_url = "https://#{switch}btc.blockr.io/api/v1/address/unspent/"
+		#switch = network == "testnet" ? "t" : ""
+		switch = network == "testnet" ? BASE_BLOCKR_TEST : BASE_BLOCKR
+		blockr_url = switch + "address/unspent/"
 
 		tx = @t.serialize tx unless tx.respond_to? :each_char
 
@@ -166,12 +171,12 @@ class Networking
 
 	def last_block_height(network="btc")
 		if network == "testnet"
-			data = make_request('https://tbtc.blockr.io/api/v1/block/info/last')
+			data = make_request(BASE_BLOCKR_TEST + 'block/info/last')
 			jsonobj = JSON.parse data
 			return jsonobj["data"]["nb"]
 		end
 
-		data = make_request('https://blockchain.info/latestblock')
+		data = make_request(BASE_BCI + 'latestblock')
 		jsonobj = JSON.parse data
 		return jsonobj["height"]
 	end
@@ -180,12 +185,13 @@ class Networking
 	# Gets a specific transaction
 	def bci_fetchtx(txhash)
 
-		return make_request('https://blockchain.info/rawtx/'+txhash+'?format=hex')
+		return make_request(BASE_BCI + 'rawtx/'+txhash+'?format=hex')
 	end
 
 	def blockr_fetchtx(txhash, network='btc')
-		switch = network == "testnet" ? "t" : ""
-		blockr_url = "https://#{switch}btc.blockr.io/api/v1/tx/raw/"
+		#switch = network == "testnet" ? "t" : ""
+		switch = network == "testnet" ? BASE_BLOCKR_TEST : BASE_BLOCKR
+		blockr_url = switch + "tx/raw/"
 
 		jsondata = JSON.parse(make_request(blockr_url+txhash))
 		return jsondata['data']['tx']['hex']
@@ -197,7 +203,7 @@ class Networking
 	end
 
 	def get_block_at_height(height)
-		result = make_request("https://blockchain.info/block-height/#{height}?format=json")
+		result = make_request(BASE_BCI + "block-height/#{height}?format=json")
 
 		raise "Block at this height not found" if result =~ /Unknown Error/
 
@@ -220,8 +226,9 @@ class Networking
 	end
 
 	def blockr_get_block_header_data(height, network='btc')
-		switch = network == "testnet" ? "t" : ""
-		blockr_url = "https://#{switch}btc.blockr.io/api/v1/address/unspent/"
+		#switch = network == "testnet" ? "t" : ""
+		switch = network == "testnet" ? BASE_BLOCKR_TEST : BASE_BLOCKR
+		blockr_url = switch + "address/unspent/"
 
 		result = JSON.parse make_request(blockr_url)
 		block = result['data']
