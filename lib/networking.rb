@@ -155,7 +155,6 @@ class Networking
 	end
 
 	def blockr_pushtx(tx, network="btc")
-		#switch = network == "testnet" ? "t" : ""
 		switch = network == "testnet" ? BASE_BLOCKR_TEST : BASE_BLOCKR
 		blockr_url = switch + "address/unspent/"
 
@@ -169,7 +168,7 @@ class Networking
 		return blockr_pushtx(*args)
 	end
 
-	def last_block_height(network="btc")
+	def last_block(network="btc")
 		if network == "testnet"
 			data = make_request(BASE_BLOCKR_TEST + 'block/info/last')
 			jsonobj = JSON.parse data
@@ -184,12 +183,10 @@ class Networking
 
 	# Gets a specific transaction
 	def bci_fetchtx(txhash)
-
 		return make_request(BASE_BCI + 'rawtx/'+txhash+'?format=hex')
 	end
 
 	def blockr_fetchtx(txhash, network='btc')
-		#switch = network == "testnet" ? "t" : ""
 		switch = network == "testnet" ? BASE_BLOCKR_TEST : BASE_BLOCKR
 		blockr_url = switch + "tx/raw/"
 
@@ -226,7 +223,6 @@ class Networking
 	end
 
 	def blockr_get_block_header_data(height, network='btc')
-		#switch = network == "testnet" ? "t" : ""
 		switch = network == "testnet" ? BASE_BLOCKR_TEST : BASE_BLOCKR
 		blockr_url = switch + "address/unspent/"
 

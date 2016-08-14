@@ -80,13 +80,13 @@ describe Networking do
 	context ".pushtx" do
 	end
 
-	context ".last_block_height" do
+	context ".last_block" do
 
-		it "returns the height of the last block" do
-			height = n.last_block_height
+		it "returns the last block" do
+			height = n.last_block
 			expect(height > 406509).to be true
 
-			height = n.last_block_height('testnet')
+			height = n.last_block('testnet')
 			expect(height > 764061).to be true
 		end
 	end
