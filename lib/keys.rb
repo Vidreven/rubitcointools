@@ -261,7 +261,7 @@ class Keys
 	def random_key
 		entropy = @sp.random_string 32
 
-		@h.slowsha(entropy)
+		@h.bin_slowsha(entropy)
 	end
 
 	# def random_electrum_seed
