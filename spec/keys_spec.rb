@@ -356,15 +356,28 @@ describe Keys do
 
 	context ".random_key" do
 
-		it "returns 64 char string" do
+		it "returns 32 byte string" do
 			string = k.random_key
-			expect(string.length).to eql 64
+			expect(string.length).to eql 32
 		end
 
 		it "returns unique strings" do
 			string1 = k.random_key
 			string2 = k.random_key
 			expect(string2).not_to eql string1
+		end
+	end
+
+	context ".valid?" do
+
+		context "given a private key" do
+
+			it "checks its validity" do
+
+				expect(k.valid? 0).to be false
+				expect(k.valid? ECC::N).to be false
+				expect(k.valid? ECC::N >> 2).to be true
+			end
 		end
 	end
 end

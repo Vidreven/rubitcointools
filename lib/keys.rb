@@ -259,9 +259,16 @@ class Keys
 	# end
 
 	def random_key
-		entropy = @sp.random_string 32
+		begin
+			entropy = @sp.random_string 32
+			privkey = @h.bin_slowsha(entropy)
+		end while !valid? privkey
+		privkey
+	end
 
-		@h.bin_slowsha(entropy)
+	def valid?(privkey)
+		privkey = decode_privkey privkey
+		privkey > 0 && privkey < ECC::N
 	end
 
 	# def random_electrum_seed
