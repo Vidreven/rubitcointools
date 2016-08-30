@@ -237,7 +237,7 @@ class Transaction
 
 		raise ArgumentError, "Script must be present" if scriptPubKey.nil?
 		raise ArgumentError, "Script can't be empty" if scriptPubKey.empty?
-		raise ArgumentError, "Invalid script" if scriptPubKey.size < 50
+		#raise ArgumentError, "Invalid script" if scriptPubKey.size < 50
 
 		amount = amount.to_s(16).rjust(16, '0')
 
