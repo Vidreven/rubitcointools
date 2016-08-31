@@ -245,10 +245,10 @@ class Transaction
 	end
 
 	def mkin(hash, index, scriptSig, sequence='ffffffff')
-		raise ArgumentError, "Input can't be empty" unless [hash, index, scriptSig].none? {|x| x.empty?}
+		raise ArgumentError, "Input can't be empty" unless [hash, scriptSig].none? {|x| x.empty?}
 		#raise ArgumentError, "Invalid signature" unless @dsa.bip66? scriptSig
 
-		outpoint = {outpoint: {hash: hash, index: index}}
+		outpoint = {outpoint: {hash: hash, index: index.to_s.rjust(8, '0')}}
 		outpoint[:scriptSig] = scriptSig
 		outpoint[:sequence] = sequence
 
@@ -267,7 +267,7 @@ class Transaction
 			input?(arg) ? tx[:ins] << arg : tx[:outs] << arg
 		end
 		
-		return serialize(tx)
+		return tx #serialize(tx)
 	end
 
 	#private
