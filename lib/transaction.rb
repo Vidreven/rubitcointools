@@ -166,6 +166,7 @@ class Transaction
 	def sign(tx, i, priv, hashcode=SIGHASH_ALL)
 		i = i.to_i
 
+		priv = @k.encode_privkey(priv, :hex)
 		pub = @k.privtopub(priv)
 		address = @k.pubtoaddr(pub)
 		txobj = deepcopy(tx)
@@ -185,7 +186,7 @@ class Transaction
 	# and signs every transaction input.
 	def sign_all(tx, priv)
 
-		tx = deserialize(tx)
+		#tx = deserialize(tx)
 
 		tx[:ins].each_index do |i|
 			#tx = deserialize(sign(tx, i, priv))

@@ -550,10 +550,11 @@ describe Transaction do
 
 	context "sign_all" do
 
-		context "given a serialized MIMO transaction" do
+		context "given a deserialized MIMO transaction" do
 
 			it "signs each input" do
-				tx = t.sign_all(tx23, priv)
+
+				tx = t.sign_all(t.deserialize(tx23), priv)
 
 				sig0 = tx[:ins][0][:scriptSig][2..141]
 				expect(ECDSA.new.bip66?(sig0)).to be true
