@@ -302,13 +302,13 @@ describe Specials do
 
 	context ".random_string" do
 
-		context "given zero length" do
+		# context "given zero length" do
 
-			it "returns empty string" do
-				string = s.random_string 0
-				expect(string).to eql ''
-			end
-		end
+		# 	it "returns empty string" do
+		# 		string = s.random_string 0
+		# 		expect(string).to eql ''
+		# 	end
+		# end
 
 		context "given non-zero length string" do
 

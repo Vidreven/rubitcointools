@@ -1,5 +1,5 @@
 require 'digest'
-require 'securerandom'
+require 'sysrandom'
 require_relative 'hashes'
 
 class Specials
@@ -119,6 +119,6 @@ class Specials
 	end
 
 	def random_string(length)
-		return SecureRandom.random_bytes length
+		return Sysrandom.random_bytes length
 	end
 end
