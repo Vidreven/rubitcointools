@@ -335,7 +335,7 @@ describe Transaction do
 
 				it "hashes transaction" do
 					result = t.txhash(tx23, 82)
-					expect(result.size).to eql 64
+					expect(result.size).to eql 63
 				end
 			end
 
@@ -538,7 +538,7 @@ describe Transaction do
 
 			it "signs it" do
 				tr = t.sign(tx, i, priv)
-				sig = tr[:ins][0][:scriptSig][2..141]
+				sig = tr[:ins][0][:scriptSig][2..143]
 				expect(ECDSA.new.bip66?(sig)).to be true
 			end
 
@@ -553,10 +553,9 @@ describe Transaction do
 		context "given a deserialized MIMO transaction" do
 
 			it "signs each input" do
-
 				tx = t.sign_all(t.deserialize(tx23), priv)
 
-				sig0 = tx[:ins][0][:scriptSig][2..141]
+				sig0 = tx[:ins][0][:scriptSig][2..143]
 				expect(ECDSA.new.bip66?(sig0)).to be true
 
 				sig1 = tx[:ins][1][:scriptSig][2..143]
@@ -601,22 +600,22 @@ describe Transaction do
 				sig2 = t.multisign(tx, i, scriptPK, priv2)
 				sig3 = t.multisign(tx, i, scriptPK, priv3)
 
-				res = t.apply_multisignatures(tx11, i, script, [sig1])
-				sig = res[:ins][0][:scriptSig][3..142]
+				res = t.apply_multisignatures(tx, i, script, [sig1])
+				sig = res[:ins][0][:scriptSig][4..145]
 				expect(ECDSA.new.bip66? sig).to be true
 
-				res = t.apply_multisignatures(tx11, i, script, [sig1, sig2, sig3])
-				sig = res[:ins][0][:scriptSig][3..142]
+				res = t.apply_multisignatures(tx, i, script, [sig1, sig2, sig3])
+				sig = res[:ins][0][:scriptSig][4..145]
 				expect(ECDSA.new.bip66? sig).to be true
 
-				res = t.apply_multisignatures(tx11, i, script, sig1, sig2, sig3)
-				sig = res[:ins][0][:scriptSig][3..142]
+				res = t.apply_multisignatures(tx, i, script, sig1, sig2, sig3)
+				sig = res[:ins][0][:scriptSig][4..145]
 				expect(ECDSA.new.bip66? sig).to be true
 
-				sig = res[:ins][0][:scriptSig][147..286]
+				sig = res[:ins][0][:scriptSig][150..289]
 				expect(ECDSA.new.bip66? sig).to be true
 
-				sig = res[:ins][0][:scriptSig][291..430]
+				sig = res[:ins][0][:scriptSig][294..435]
 				expect(ECDSA.new.bip66? sig).to be true
 			end
 		end

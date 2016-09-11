@@ -128,14 +128,15 @@ class Transaction
 
 	# Accepts transaction in serialized format and appends hashcode before hashing.
 	def bin_txhash(tx, hashcode=SIGHASH_ALL)
-		hashcode = hashcode.to_s.rjust(8, '0')
-		hashcode = @sp.change_endianness(hashcode)
+		tx = @sp.changebase(tx, 16, 256)
+		hashcode = @sp.encode(hashcode, 256, 4) #hashcode.to_s.rjust(8, '0')
+		hashcode.reverse! # = @sp.change_endianness(hashcode)
 		result = @h.bin_dbl_sha256(tx + hashcode)
 
 		result
 	end
 
-	def txhash(tx, hashcode=nil)
+	def txhash(tx, hashcode=SIGHASH_ALL)
 		@sp.changebase(bin_txhash(tx, hashcode), 256, 16)
 	end
 
@@ -179,21 +180,18 @@ class Transaction
 		txobj[:ins][i][:scriptSig] = (sig.length / 2).to_s(16) + sig + (pub.length / 2).to_s(16) + pub
 
 		#return serialize(txobj)
-		return txobj
+		txobj
 	end
 
-	# Takes a serialized transaction as input
+	# Takes a deserialized transaction as input
 	# and signs every transaction input.
 	def sign_all(tx, priv)
 
-		#tx = deserialize(tx)
-
 		tx[:ins].each_index do |i|
-			#tx = deserialize(sign(tx, i, priv))
 			tx = sign(tx, i, priv)
 		end
 
-		return tx
+		tx
 	end
 
 	# Takes a deserialized transaction as input and signs the input
@@ -201,20 +199,20 @@ class Transaction
 	def multisign(tx, i, script, priv, hashcode=SIGHASH_ALL)
 		modtx = signature_form(tx, i, script, hashcode)
 		modtx = serialize modtx
-		return ecdsa_tx_sign(modtx, priv, hashcode)
+		ecdsa_tx_sign(modtx, priv, hashcode)
 	end
 
-	# Takes a serialized multisig transaction as input
+	# Takes a deserialized multisig transaction as input
 	# and appends signatures and script to the input field.
 	# Separate persons can controll different pubkeys/signatures.
 	# Params:
-	# +tx+:: serialized multisig transaction
+	# +tx+:: deserialized multisig transaction
 	# +i+:: - input index
 	# +script+:: - PSH reddem script (OP_M pubkeys OP_N OP_CHECKMULTISIG)
 	# +sigs+:: - string list or array of signatures
 	def apply_multisignatures(tx, i, script, *sigs)
-		txobj = deserialize(tx)
-		scriptSig = "0" # Push byte 0x0 due to bug in multisig
+		#txobj = deserialize(tx)
+		scriptSig = "00" # Push byte 0x0 due to bug in multisig
 
 		# In case sigs is an array * puts it inside another array
 		# so that outter array size is 1.
@@ -226,9 +224,9 @@ class Transaction
 
 		scriptSig += (script.length / 2).to_s(16) + script
 
-		txobj[:ins][i][:scriptSig] = scriptSig
+		tx[:ins][i][:scriptSig] = scriptSig
 
-		return txobj
+		tx
 	end
 
 	def mkout(amount=546, scriptPubKey)
@@ -242,7 +240,7 @@ class Transaction
 
 		amount = amount.to_s(16).rjust(16, '0')
 
-		return {value: amount, scriptPubKey: scriptPubKey}
+		{value: amount, scriptPubKey: scriptPubKey}
 	end
 
 	def mkin(hash, index, scriptSig, sequence='ffffffff')
@@ -253,7 +251,7 @@ class Transaction
 		outpoint[:scriptSig] = scriptSig
 		outpoint[:sequence] = sequence
 
-		return outpoint
+		outpoint
 	end
 
 	# Takes a list of input and output hashes
@@ -268,7 +266,7 @@ class Transaction
 			input?(arg) ? tx[:ins] << arg : tx[:outs] << arg
 		end
 		
-		return tx #serialize(tx)
+		tx
 	end
 
 	#private
