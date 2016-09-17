@@ -150,6 +150,16 @@ describe Scripts do
 				expect(script[-2..-1]).to eql '87'
 			end
 		end
+
+		context "given address" do
+
+			it "returns scripts" do
+				0.upto addrs.size - 1 do |i|
+					scr = s.address_to_script addrs[i]
+					expect(scr).to eql scripts[i]
+				end
+			end
+		end
 	end
 
 	context ".script_to_address" do
@@ -185,10 +195,8 @@ describe Scripts do
 
 			it "returns correct addresses" do
 				0.upto scripts.size - 1 do |i|
-					if scripts[i].size == 50 
-						adr = s.script_to_address scripts[i]
-						expect(adr).to eql addrs[i]
-					end
+					adr = s.script_to_address scripts[i]
+					expect(adr).to eql addrs[i]
 				end
 			end
 		end

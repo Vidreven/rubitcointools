@@ -14,7 +14,7 @@ class Scripts
 	end
 
 	def mk_scripthash_script(hash)
-		'a914' + @sp.b58check_to_hex(hash) + '87'
+		'a914' + @sp.b58check_to_hex(hash).rjust(40, '0') + '87'
 	end
 
 	# Encode small integers to hex OP_N
