@@ -10,7 +10,7 @@ class Scripts
 
 	# OP_DUP OP_HASH160 hex_len_PKH PKH OP_EQUALVERIFY OP_CHECKSIG
 	def mk_pubkey_script(pkh)
-		'76a914' + @sp.b58check_to_hex(pkh) + '88ac' #addr part needs to be 40 char in length
+		'76a914' + @sp.b58check_to_hex(pkh).rjust(40, '0') + '88ac' #addr part needs to be 40 char in length
 	end
 
 	def mk_scripthash_script(hash)
@@ -59,7 +59,7 @@ class Scripts
 
 	def script_to_address(script, vbyte=0)
 		if (script[0..5] == '76a914' && script[-4..-1] == '88ac' && script.length == 50)
-			hextobin = @sp.changebase(script[6..-5], 16, 256)
+			hextobin = @sp.changebase(script[6..-5], 16, 256, 20)
 			@sp.bin_to_b58check(hextobin, vbyte)
 		else
 			if [111, 196].include? vbyte
