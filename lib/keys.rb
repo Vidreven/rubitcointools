@@ -230,11 +230,17 @@ class Keys
 
 	alias :pubtoaddr :pubkey_to_address
 
-	def privkey_to_address(priv, magicbyte = 0)
+	def privkey_to_address(priv, magicbyte=0)
 		pubkey_to_address(privkey_to_pubkey(priv), magicbyte)
 	end
 
 	alias :privtoaddr :privkey_to_address
+
+	# Converts a script to P2SH
+	def script_to_address(script, magicbyte=5)
+		script = @sp.changebase(script, 16, 256)
+		@sp.bin_to_b58check(@h.bin_hash160(script), magicbyte)
+	end
 
 	# def neg_pubkey(pubkey)
 	# 	f = get_pubkey_format(pubkey)
