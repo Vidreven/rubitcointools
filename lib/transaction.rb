@@ -213,6 +213,7 @@ class Transaction
 	def apply_multisignatures(tx, i, script, *sigs)
 		#txobj = deserialize(tx)
 		scriptSig = "00" # Push byte 0x0 due to bug in multisig
+		pushdata = '' # In case transaction > 150 bytes.
 
 		# In case sigs is an array * puts it inside another array
 		# so that outter array size is 1.
@@ -222,6 +223,14 @@ class Transaction
 			scriptSig += (sig.length / 2).to_s(16) + sig
 		end
 
+		pushdata = case script.length
+				when 151..255 then '4c'
+				when 256..65535 then '4d'
+				when 65546..0xFFFFFFFF then '4e'
+			end
+				
+
+		scriptSig += pushdata #'4c' if (script.length / 2) > 150 # OP_PUSHDATA1
 		scriptSig += (script.length / 2).to_s(16) + script
 
 		tx[:ins][i][:scriptSig] = scriptSig
