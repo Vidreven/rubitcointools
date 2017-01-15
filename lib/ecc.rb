@@ -77,7 +77,11 @@ class ECC
 
 	def format_point(point)
 		point[0] = point[0] % P if point[0] < 0 || point[0] >= P
-		point = [point[0], get_y(point[0])] unless point[1]
+		y = get_y(point[0]) unless point[1]
+
+		raise ArgumentError, "Invald point!" if y == -1
+
+		point = [point[0], y] unless point[1]
 		point = to_jacobian point unless point[2]
 		point
 	end
